@@ -1,4 +1,5 @@
 import { User, BusinessGroup, Role, ActivityLog, Order, OrderStats, UserRole } from '../types';
+import { ReportData } from '../types';
 
 export const mockUsers: User[] = [
   {

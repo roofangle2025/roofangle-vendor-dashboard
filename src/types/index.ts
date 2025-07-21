@@ -37,12 +37,13 @@ export interface ActivityLog {
 }
 
 export interface NavigationState {
-  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details';
+  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management';
   selectedGroupId?: string;
   selectedOrderId?: string;
   showAccessSidebar: boolean;
   showMenuSidebar: boolean;
   showOrderSidebar: boolean;
+  showReportsSidebar: boolean;
 }
 
 export interface Order {
@@ -105,4 +106,20 @@ export interface UserRole {
   canViewOrders: boolean;
   canAssignOrders: boolean;
   canProcessOrders: boolean;
+}
+
+export interface ReportData {
+  id: string;
+  orderNumber: string;
+  itemNumber: string;
+  deliverTimestamp: Date | null;
+  sketchPersonName: string;
+  qaPersonName: string;
+  sketchPersonQuality: number; // 1-5 rating
+  qaPersonQuality: number; // 1-5 rating
+  businessGroup: string;
+  status: string;
+  customerName: string;
+  propertyType?: string;
+  service?: string;
 }
