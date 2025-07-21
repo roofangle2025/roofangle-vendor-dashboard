@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, ShoppingCart, X } from 'lucide-react';
+import { Shield, ShoppingCart, X, FileText } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
