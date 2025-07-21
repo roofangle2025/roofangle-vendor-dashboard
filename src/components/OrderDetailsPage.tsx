@@ -1009,8 +1009,8 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {readyModalType === 'ready' ? 'QA Quality Rating' : 
-                       readyModalType === 'deliver' ? 'Overall Quality Rating' : 
+                      {readyModalType === 'ready' ? 'Sketch Quality Rating' : 
+                       readyModalType === 'deliver' ? 'QA Quality Rating' : 
                        'QA Quality Rating'} *
                     </label>
                     <div className="flex items-center space-x-3">
