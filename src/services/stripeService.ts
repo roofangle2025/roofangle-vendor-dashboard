@@ -1,10 +1,16 @@
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key
-// In production, this should be stored in environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_...', {
-  apiVersion: '2023-10-16',
-});
+// Initialize Stripe with your secret key from environment variables
+const getStripeInstance = () => {
+  const stripeKey = import.meta.env.VITE_STRIPE_SECRET_KEY;
+  if (!stripeKey || stripeKey === 'sk_test_your_stripe_secret_key_here') {
+    throw new Error('Stripe secret key not configured');
+  }
+  
+  return new Stripe(stripeKey, {
+    apiVersion: '2023-10-16',
+  });
+};
 
 export interface StripeTransaction {
   id: string;
@@ -38,6 +44,7 @@ export interface StripePaymentMethod {
 // Fetch payment intents (transactions) from Stripe
 export const fetchStripeTransactions = async (limit: number = 100): Promise<StripeTransaction[]> => {
   try {
+    const stripe = getStripeInstance();
     const paymentIntents = await stripe.paymentIntents.list({
       limit,
       expand: ['data.customer', 'data.payment_method'],
@@ -64,6 +71,7 @@ export const fetchStripeTransactions = async (limit: number = 100): Promise<Stri
 // Fetch customer details from Stripe
 export const fetchStripeCustomer = async (customerId: string): Promise<StripeCustomer | null> => {
   try {
+    const stripe = getStripeInstance();
     const customer = await stripe.customers.retrieve(customerId);
     
     if (customer.deleted) {
@@ -85,6 +93,7 @@ export const fetchStripeCustomer = async (customerId: string): Promise<StripeCus
 // Fetch payment method details from Stripe
 export const fetchStripePaymentMethod = async (paymentMethodId: string): Promise<StripePaymentMethod | null> => {
   try {
+    const stripe = getStripeInstance();
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
     return {
@@ -104,6 +113,7 @@ export const fetchStripePaymentMethod = async (paymentMethodId: string): Promise
 // Fetch charges (for additional transaction details)
 export const fetchStripeCharges = async (limit: number = 100) => {
   try {
+    const stripe = getStripeInstance();
     const charges = await stripe.charges.list({
       limit,
       expand: ['data.customer', 'data.payment_method'],

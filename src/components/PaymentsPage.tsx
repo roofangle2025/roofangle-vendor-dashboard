@@ -14,7 +14,7 @@ interface FilterState {
 }
 
 export const PaymentsPage: React.FC = () => {
-  const { transactions, loading, error, refreshTransactions } = useStripeTransactions();
+  const { transactions, loading, error, usingMockData, refreshTransactions } = useStripeTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<SortField>('transactionDate');
@@ -245,6 +245,11 @@ export const PaymentsPage: React.FC = () => {
         <div className="flex items-center space-x-3">
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Payments</h1>
           {loading && <Loader className="w-5 h-5 text-blue-600 animate-spin" />}
+          {usingMockData && (
+            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+              Sample Data
+            </span>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <button 
@@ -253,7 +258,7 @@ export const PaymentsPage: React.FC = () => {
             className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh from Stripe</span>
+            <span className="hidden sm:inline">{usingMockData ? 'Try Stripe Connection' : 'Refresh from Stripe'}</span>
             <span className="sm:hidden">Refresh</span>
           </button>
           <button 
@@ -269,7 +274,7 @@ export const PaymentsPage: React.FC = () => {
       </div>
 
       {/* Error Display */}
-      {error && (
+      {error && !usingMockData && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center">
             <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
@@ -282,6 +287,21 @@ export const PaymentsPage: React.FC = () => {
               >
                 Try again
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mock Data Notice */}
+      {usingMockData && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
+            <div>
+              <h3 className="text-sm font-medium text-blue-800">Using Sample Transaction Data</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Configure your Stripe secret key in the .env file to see real payment data.
+              </p>
             </div>
           </div>
         </div>
