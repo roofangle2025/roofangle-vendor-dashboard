@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, ShoppingCart, X, FileText } from 'lucide-react';
+import { Shield, ShoppingCart, X, FileText, CreditCard } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -53,6 +53,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigate, onClose })
             >
               <FileText className="w-5 h-5 flex-shrink-0" />
               <span className="truncate font-medium">Reports Management</span>
+            </button>
+          </li>
+          <li>
+            <button 
+              onClick={() => onNavigate('transaction-management')}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
+            >
+              <CreditCard className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate font-medium">Transaction Management</span>
             </button>
           </li>
         </ul>

@@ -37,13 +37,14 @@ export interface ActivityLog {
 }
 
 export interface NavigationState {
-  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management' | 'quality-analytics' | 'vendor-report';
+  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management' | 'quality-analytics' | 'vendor-report' | 'transaction-management';
   selectedGroupId?: string;
   selectedOrderId?: string;
   showAccessSidebar: boolean;
   showMenuSidebar: boolean;
   showOrderSidebar: boolean;
   showReportsSidebar: boolean;
+  showTransactionSidebar: boolean;
 }
 
 export interface Order {
