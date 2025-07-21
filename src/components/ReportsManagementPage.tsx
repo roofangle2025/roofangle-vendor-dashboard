@@ -29,7 +29,7 @@ export const ReportsManagementPage: React.FC = () => {
     qaPerson: 'all',
     businessGroup: 'all',
     dateRange: 'all',
-    deliveryStatus: 'all'
+    deliveryStatus: 'all',
     customStartDate: '',
     customEndDate: ''
   });
