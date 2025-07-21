@@ -325,7 +325,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       // Add comment to the communication log
       const comment: Comment = {
         id: Date.now().toString(),
-        message: `${actionType} - ${readyModalData.percentage}% complete. Quality Rating: ${readyModalData.quality}/5 stars. ${readyModalData.comment}`,
+        message: `${actionType} - Quality Rating: ${readyModalData.quality}/5 stars. ${readyModalData.comment}`,
         timestamp: new Date(),
         author: 'Yashwnath K',
         authorInitials: 'YK',
@@ -1007,25 +1007,6 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
                 </div>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Completion Percentage
-                    </label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={readyModalData.percentage}
-                        onChange={(e) => setReadyModalData(prev => ({ ...prev, percentage: parseInt(e.target.value) }))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <span className="text-sm font-medium text-gray-900 w-12 text-right">
-                        {readyModalData.percentage}%
-                      </span>
-                    </div>
-                  </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {readyModalType === 'ready' ? 'QA Quality Rating' : 
