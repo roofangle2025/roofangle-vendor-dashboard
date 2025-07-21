@@ -1,18 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { CreditCard, DollarSign, Calendar, User, Search, Filter, ChevronDown, X, Download, CheckCircle, Clock, AlertCircle, Eye } from 'lucide-react';
-
-interface Transaction {
-  id: string;
-  transactionId: string;
-  customerName: string;
-  orderNumber: string;
-  amount: number;
-  status: 'completed' | 'pending' | 'failed' | 'refunded';
-  paymentMethod: 'credit_card' | 'bank_transfer' | 'check' | 'paypal';
-  transactionDate: Date;
-  description: string;
-  businessGroup: string;
-}
+import { CreditCard, DollarSign, Calendar, User, Search, Filter, ChevronDown, X, Download, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, Loader } from 'lucide-react';
+import { useStripeTransactions } from '../hooks/useStripeTransactions';
 
 type SortField = 'transactionId' | 'customerName' | 'amount' | 'transactionDate' | 'status';
 type SortDirection = 'asc' | 'desc';
@@ -25,108 +13,8 @@ interface FilterState {
   amountRange: 'all' | '0-100' | '100-500' | '500-1000' | '1000+';
 }
 
-// Mock transaction data
-const mockTransactions: Transaction[] = [
-  {
-    id: '1',
-    transactionId: 'TXN-2025-001',
-    customerName: 'ABC Construction Co.',
-    orderNumber: 'ORD-2025-001',
-    amount: 450.00,
-    status: 'completed',
-    paymentMethod: 'credit_card',
-    transactionDate: new Date('2025-01-15T14:30:00'),
-    description: 'ESX Report - Residential Property Inspection',
-    businessGroup: 'Ridgetop'
-  },
-  {
-    id: '2',
-    transactionId: 'TXN-2025-002',
-    customerName: 'Metro Building Solutions',
-    orderNumber: 'ORD-2025-002',
-    amount: 750.00,
-    status: 'completed',
-    paymentMethod: 'bank_transfer',
-    transactionDate: new Date('2025-01-14T10:15:00'),
-    description: 'Wall Report - Commercial Building Assessment',
-    businessGroup: 'Skyline'
-  },
-  {
-    id: '3',
-    transactionId: 'TXN-2025-003',
-    customerName: 'Residential Builders Inc.',
-    orderNumber: 'ORD-2025-003',
-    amount: 325.00,
-    status: 'pending',
-    paymentMethod: 'check',
-    transactionDate: new Date('2025-01-13T16:45:00'),
-    description: 'ESX Report - Standard Residential Inspection',
-    businessGroup: 'Ridgetop'
-  },
-  {
-    id: '4',
-    transactionId: 'TXN-2025-004',
-    customerName: 'Downtown Development LLC',
-    orderNumber: 'ORD-2025-004',
-    amount: 950.00,
-    status: 'completed',
-    paymentMethod: 'credit_card',
-    transactionDate: new Date('2025-01-12T11:20:00'),
-    description: 'DAD Report - High-rise Development Assessment',
-    businessGroup: 'Skyline'
-  },
-  {
-    id: '5',
-    transactionId: 'TXN-2025-005',
-    customerName: 'Green Valley Homes',
-    orderNumber: 'ORD-2025-005',
-    amount: 275.00,
-    status: 'failed',
-    paymentMethod: 'credit_card',
-    transactionDate: new Date('2025-01-11T09:30:00'),
-    description: 'ESX Report - Eco-friendly Home Inspection',
-    businessGroup: 'Ridgetop'
-  },
-  {
-    id: '6',
-    transactionId: 'TXN-2025-006',
-    customerName: 'Tech Startup Office',
-    orderNumber: 'ORD-2025-006',
-    amount: 180.00,
-    status: 'refunded',
-    paymentMethod: 'paypal',
-    transactionDate: new Date('2025-01-10T13:15:00'),
-    description: 'Wall Report - Office Space Assessment (Refunded)',
-    businessGroup: 'Skyline'
-  },
-  {
-    id: '7',
-    transactionId: 'TXN-2025-007',
-    customerName: 'Urban Homes Ltd.',
-    orderNumber: 'ORD-2025-008',
-    amount: 425.00,
-    status: 'completed',
-    paymentMethod: 'bank_transfer',
-    transactionDate: new Date('2025-01-09T15:45:00'),
-    description: 'ESX Report + Structural Assessment',
-    businessGroup: 'Ridgetop'
-  },
-  {
-    id: '8',
-    transactionId: 'TXN-2025-008',
-    customerName: 'Corporate Plaza LLC',
-    orderNumber: 'ORD-2025-009',
-    amount: 1200.00,
-    status: 'pending',
-    paymentMethod: 'check',
-    transactionDate: new Date('2025-01-08T12:00:00'),
-    description: 'Comprehensive Building Assessment Package',
-    businessGroup: 'Skyline'
-  }
-];
-
 export const PaymentsPage: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const { transactions, loading, error, refreshTransactions } = useStripeTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<SortField>('transactionDate');
@@ -354,16 +242,50 @@ export const PaymentsPage: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Payments</h1>
-        <button 
-          onClick={handleExportTransactions}
-          className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          <span className="hidden sm:inline">Export Transactions</span>
-          <span className="sm:hidden">Export</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Payments</h1>
+          {loading && <Loader className="w-5 h-5 text-blue-600 animate-spin" />}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button 
+            onClick={refreshTransactions}
+            disabled={loading}
+            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh from Stripe</span>
+            <span className="sm:hidden">Refresh</span>
+          </button>
+          <button 
+            onClick={handleExportTransactions}
+            disabled={loading}
+            className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Export Transactions</span>
+            <span className="sm:hidden">Export</span>
+          </button>
+        </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Error Loading Transactions</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <button
+                onClick={refreshTransactions}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -557,13 +479,24 @@ export const PaymentsPage: React.FC = () => {
           {filteredAndSortedTransactions.length === 0 ? (
             <div className="p-6 text-center">
               <CreditCard className="w-12 h-12 text-gray-300 mb-4 mx-auto" />
-              <p className="text-gray-500 text-lg font-medium">No transactions found</p>
+              <p className="text-gray-500 text-lg font-medium">
+                {loading ? 'Loading transactions from Stripe...' : 'No transactions found'}
+              </p>
               <p className="text-gray-400 text-sm mt-1">
-                {hasActiveFilters() 
+                {loading ? 'Please wait while we fetch your payment data' :
+                 hasActiveFilters() 
                   ? 'Try adjusting your search or filters'
-                  : 'No transactions available'
+                  : 'No transactions available from Stripe'
                 }
               </p>
+              {!loading && !hasActiveFilters() && (
+                <button
+                  onClick={refreshTransactions}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Refresh from Stripe
+                </button>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -676,13 +609,24 @@ export const PaymentsPage: React.FC = () => {
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center">
                       <CreditCard className="w-12 h-12 text-gray-300 mb-4" />
-                      <p className="text-gray-500 text-lg font-medium">No transactions found</p>
+                      <p className="text-gray-500 text-lg font-medium">
+                        {loading ? 'Loading transactions from Stripe...' : 'No transactions found'}
+                      </p>
                       <p className="text-gray-400 text-sm mt-1">
-                        {hasActiveFilters() 
+                        {loading ? 'Please wait while we fetch your payment data' :
+                         hasActiveFilters() 
                           ? 'Try adjusting your search or filters'
-                          : 'No transactions available'
+                          : 'No transactions available from Stripe'
                         }
                       </p>
+                      {!loading && !hasActiveFilters() && (
+                        <button
+                          onClick={refreshTransactions}
+                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                        >
+                          Refresh from Stripe
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
