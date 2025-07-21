@@ -37,31 +37,39 @@ export const ReportsManagementPage: React.FC = () => {
 
   const handleExportReports = () => {
     const headers = activeView === 'vendor' 
-      ? ['Order Number', 'Item Number', 'Deliver Timestamp', 'Business Group', 'Customer Name']
-      : ['Order Number', 'Item Number', 'Deliver Timestamp', 'Sketch Person', 'QA Person', 'Sketch Quality', 'QA Quality', 'Business Group', 'Customer Name'];
+      ? ['Delivery Timestamp', 'Order Number', 'Item Number', 'Business Group', 'Address', 'Rush', 'PDF', 'Property Type', 'Report Type']
+      : ['Delivery Timestamp', 'Order Number', 'Item Number', 'Business Group', 'Address', 'Rush', 'PDF', 'Property Type', 'Report Type', 'QA Name', 'Sketch Name', 'Sketch Quality', 'QA Quality'];
 
     const csvContent = [
       headers.join(','),
       ...reports.map(report => {
         if (activeView === 'vendor') {
           return [
+            report.deliverTimestamp ? report.deliverTimestamp.toISOString() : 'Not delivered',
             report.orderNumber,
             report.itemNumber,
-            report.deliverTimestamp ? report.deliverTimestamp.toISOString() : 'Not delivered',
             report.businessGroup,
-            `"${report.customerName}"`
+            `"${report.propertyType || 'Not specified'}"`, // Using propertyType as address placeholder
+            report.service?.includes('Rush') ? 'Yes' : 'No', // Rush order indicator
+            'Yes', // PDF - assuming all reports have PDF
+            report.propertyType || 'Not specified',
+            report.service || 'Not specified'
           ].join(',');
         } else {
           return [
+            report.deliverTimestamp ? report.deliverTimestamp.toISOString() : 'Not delivered',
             report.orderNumber,
             report.itemNumber,
-            report.deliverTimestamp ? report.deliverTimestamp.toISOString() : 'Not delivered',
-            report.sketchPersonName,
-            report.qaPersonName,
-            report.sketchPersonQuality,
-            report.qaPersonQuality,
             report.businessGroup,
-            `"${report.customerName}"`
+            `"${report.propertyType || 'Not specified'}"`, // Using propertyType as address placeholder
+            report.service?.includes('Rush') ? 'Yes' : 'No', // Rush order indicator
+            'Yes', // PDF - assuming all reports have PDF
+            report.propertyType || 'Not specified',
+            report.service || 'Not specified',
+            report.qaPersonName,
+            report.sketchPersonName,
+            report.sketchPersonQuality,
+            report.qaPersonQuality
           ].join(',');
         }
       })
