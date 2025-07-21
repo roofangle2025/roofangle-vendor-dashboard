@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Package, Calendar, MapPin, User, Building2, Clock, FileText, Shield, AlertCircle, Edit, Save, X, Upload, Download, Trash2, Check, Image, ZoomIn, MessageSquare, Send, Plus, CheckCircle, ArrowRight, PlayCircle, Truck, UserPlus } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, MapPin, User, Building2, Clock, FileText, Shield, AlertCircle, Edit, Save, X, Upload, Download, Trash2, Check, Image, ZoomIn, MessageSquare, Send, Plus, CheckCircle, ArrowRight, PlayCircle, Truck, UserPlus, Star } from 'lucide-react';
 import { Order } from '../types';
 import { mockOrders, getSketchUsers, getQAUsers } from '../data/mockData';
 import { FileUploadCenter } from './FileUploadCenter';
@@ -31,6 +31,7 @@ interface Comment {
 interface ReadyModalData {
   percentage: number;
   comment: string;
+  quality?: number;
 }
 
 interface AssignModalData {
@@ -53,7 +54,8 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
   const [readyModalType, setReadyModalType] = useState<'ready' | 'complete' | 'deliver'>('ready');
   const [readyModalData, setReadyModalData] = useState<ReadyModalData>({
     percentage: 100,
-    comment: ''
+    comment: '',
+    quality: 5
   });
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignModalData, setAssignModalData] = useState<AssignModalData>({
@@ -203,7 +205,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
     // Direct action without popup - just move to QA
     const comment: Comment = {
       id: Date.now().toString(),
-      message: 'Order moved to QA Review - Ready for quality assurance review.',
+      message: 'Sketch work completed and moved to QA Review - Ready for quality assurance review.',
       timestamp: new Date(),
       author: 'Yashwnath K',
       authorInitials: 'YK',
@@ -226,19 +228,19 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
 
   const handleReady = () => {
     setReadyModalType('ready');
-    setReadyModalData({ percentage: 100, comment: '' });
+    setReadyModalData({ percentage: 100, comment: '', quality: 5 });
     setShowReadyModal(true);
   };
 
   const handleComplete = () => {
     setReadyModalType('complete');
-    setReadyModalData({ percentage: 100, comment: '' });
+    setReadyModalData({ percentage: 100, comment: '', quality: 5 });
     setShowReadyModal(true);
   };
 
   const handleDeliver = () => {
     setReadyModalType('deliver');
-    setReadyModalData({ percentage: 100, comment: '' });
+    setReadyModalData({ percentage: 100, comment: '', quality: 5 });
     setShowReadyModal(true);
   };
 
@@ -297,7 +299,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
   };
 
   const handleReadySubmit = () => {
-    if (readyModalData.comment.trim()) {
+    if (readyModalData.comment.trim() && readyModalData.quality) {
       let actionType = '';
       let newStatus: Order['status'] = orderData.status;
       let newProcessStatus = orderData.processStatus;
@@ -323,7 +325,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       // Add comment to the communication log
       const comment: Comment = {
         id: Date.now().toString(),
-        message: `${actionType} - ${readyModalData.percentage}% complete. ${readyModalData.comment}`,
+        message: `${actionType} - ${readyModalData.percentage}% complete. Quality Rating: ${readyModalData.quality}/5 stars. ${readyModalData.comment}`,
         timestamp: new Date(),
         author: 'Yashwnath K',
         authorInitials: 'YK',
@@ -342,7 +344,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       }
       
       setShowReadyModal(false);
-      setReadyModalData({ percentage: 100, comment: '' });
+      setReadyModalData({ percentage: 100, comment: '', quality: 5 });
       
       alert(`${actionType} successfully!`);
     }
@@ -1026,6 +1028,38 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {readyModalType === 'ready' ? 'QA Quality Rating' : 
+                       readyModalType === 'deliver' ? 'Overall Quality Rating' : 
+                       'Sketch Quality Rating'} *
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        min="1"
+                        max="5"
+                        value={readyModalData.quality || 5}
+                        onChange={(e) => setReadyModalData(prev => ({ ...prev, quality: parseInt(e.target.value) }))}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${i < (readyModalData.quality || 5) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                          />
+                        ))}
+                        <span className="text-sm font-medium text-gray-900 ml-2">
+                          {readyModalData.quality}/5
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Rate the quality of work completed (1 = Poor, 5 = Excellent)
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Comment *
                     </label>
                     <textarea
@@ -1047,9 +1081,9 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
                   onClick={handleReadySubmit}
-                  disabled={!readyModalData.comment.trim()}
+                  disabled={!readyModalData.comment.trim() || !readyModalData.quality}
                   className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
-                    readyModalData.comment.trim()
+                    readyModalData.comment.trim() && readyModalData.quality
                       ? readyModalType === 'ready'
                         ? 'bg-green-600 hover:bg-green-700'
                         : 'bg-purple-600 hover:bg-purple-700'

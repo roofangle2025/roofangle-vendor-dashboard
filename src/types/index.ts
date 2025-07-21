@@ -97,6 +97,7 @@ export interface WorkflowStep {
   timestamp: Date;
   notes?: string;
   files?: string[];
+  qualityRating?: number; // 1-5 star rating for completed work
 }
 
 export interface UserRole {

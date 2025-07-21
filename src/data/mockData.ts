@@ -310,7 +310,8 @@ export const mockOrders: Order[] = [
         userId: '2',
         userName: 'Jane Smith',
         timestamp: new Date('2025-01-12T14:00:00'),
-        notes: 'Sketch work completed, moving to QA'
+        notes: 'Sketch work completed, moving to QA',
+        qualityRating: 4
       },
       {
         id: '4',
@@ -318,7 +319,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-13T09:00:00'),
-        notes: 'QA review in progress'
+        notes: 'QA review in progress',
+        qualityRating: 5
       }
     ]
   },
@@ -370,7 +372,8 @@ export const mockOrders: Order[] = [
         userId: '2',
         userName: 'Jane Smith',
         timestamp: new Date('2025-01-14T10:00:00'),
-        notes: 'Rush sketch completed'
+        notes: 'Rush sketch completed',
+        qualityRating: 5
       },
       {
         id: '4',
@@ -378,7 +381,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-14T14:00:00'),
-        notes: 'QA review completed and approved'
+        notes: 'QA review completed and approved',
+        qualityRating: 5
       },
       {
         id: '5',
@@ -386,7 +390,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-14T15:00:00'),
-        notes: 'Ready for delivery to customer'
+        notes: 'Ready for delivery to customer',
+        qualityRating: 5
       }
     ]
   },
@@ -439,7 +444,8 @@ export const mockOrders: Order[] = [
         userId: '2',
         userName: 'Jane Smith',
         timestamp: new Date('2025-01-12T09:00:00'),
-        notes: 'Sketch work completed'
+        notes: 'Sketch work completed',
+        qualityRating: 4
       },
       {
         id: '4',
@@ -447,7 +453,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-13T10:00:00'),
-        notes: 'QA review completed and approved'
+        notes: 'QA review completed and approved',
+        qualityRating: 3
       },
       {
         id: '5',
@@ -455,7 +462,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-13T11:00:00'),
-        notes: 'Ready for delivery'
+        notes: 'Ready for delivery',
+        qualityRating: 4
       },
       {
         id: '6',
@@ -463,7 +471,8 @@ export const mockOrders: Order[] = [
         userId: '5',
         userName: 'David Brown',
         timestamp: new Date('2025-01-13T15:00:00'),
-        notes: 'Order delivered to customer'
+        notes: 'Order delivered to customer',
+        qualityRating: 4
       }
     ]
   },
@@ -600,7 +609,8 @@ export const mockOrders: Order[] = [
         userId: '2',
         userName: 'Jane Smith',
         timestamp: new Date('2025-01-09T09:00:00'),
-        notes: 'Sketch work completed'
+        notes: 'Sketch work completed',
+        qualityRating: 4
       },
       {
         id: '4',
@@ -608,7 +618,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-10T10:00:00'),
-        notes: 'QA review completed and approved'
+        notes: 'QA review completed and approved',
+        qualityRating: 4
       },
       {
         id: '5',
@@ -616,7 +627,8 @@ export const mockOrders: Order[] = [
         userId: '3',
         userName: 'Mike Johnson',
         timestamp: new Date('2025-01-10T11:00:00'),
-        notes: 'Ready for delivery'
+        notes: 'Ready for delivery',
+        qualityRating: 4
       },
       {
         id: '6',
@@ -624,7 +636,8 @@ export const mockOrders: Order[] = [
         userId: '5',
         userName: 'David Brown',
         timestamp: new Date('2025-01-11T15:00:00'),
-        notes: 'Order delivered to customer'
+        notes: 'Order delivered to customer',
+        qualityRating: 4
       }
     ]
   }
