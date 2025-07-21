@@ -6,7 +6,6 @@ type TabType = 'sketch' | 'qa';
 
 interface FilterState {
   searchTerm: string;
-  businessGroup: 'all' | 'Ridgetop' | 'Skyline';
   performanceLevel: 'all' | 'excellent' | 'good' | 'needs-improvement';
   orderCountRange: 'all' | '1-5' | '6-10' | '11+';
   dateRange: 'all' | 'week' | 'month' | 'quarter';
@@ -25,7 +24,6 @@ export const QualityAnalyticsPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
-    businessGroup: 'all',
     performanceLevel: 'all',
     orderCountRange: 'all',
     dateRange: 'all'
@@ -73,7 +71,7 @@ export const QualityAnalyticsPage: React.FC = () => {
       numberOfOrders: data.orders,
       totalQualityPoints: data.totalQuality,
       averagePercentage: Math.round((data.totalQuality / (data.orders * 5)) * 100), // Convert 1-5 scale to percentage
-      businessGroups: [...new Set(deliveredReports.filter(r => r.sketchPersonName === name).map(r => r.businessGroup))]
+      businessGroups: []
     }));
 
     // Sort by average percentage descending
@@ -110,7 +108,7 @@ export const QualityAnalyticsPage: React.FC = () => {
       numberOfOrders: data.orders,
       totalQualityPoints: data.totalQuality,
       averagePercentage: Math.round((data.totalQuality / (data.orders * 5)) * 100), // Convert 1-5 scale to percentage
-      businessGroups: [...new Set(deliveredReports.filter(r => r.qaPersonName === name).map(r => r.businessGroup))]
+      businessGroups: []
     }));
 
     // Sort by average percentage descending
@@ -126,13 +124,6 @@ export const QualityAnalyticsPage: React.FC = () => {
     if (filters.searchTerm) {
       filtered = filtered.filter(stat =>
         stat.employeeName.toLowerCase().includes(filters.searchTerm.toLowerCase())
-      );
-    }
-
-    // Business Group filter
-    if (filters.businessGroup !== 'all') {
-      filtered = filtered.filter(stat =>
-        stat.businessGroups.includes(filters.businessGroup)
       );
     }
 
@@ -166,7 +157,6 @@ export const QualityAnalyticsPage: React.FC = () => {
   const clearFilters = () => {
     setFilters({
       searchTerm: '',
-      businessGroup: 'all',
       performanceLevel: 'all',
       orderCountRange: 'all',
       dateRange: 'all'
@@ -175,7 +165,6 @@ export const QualityAnalyticsPage: React.FC = () => {
 
   const hasActiveFilters = () => {
     return filters.searchTerm !== '' || 
-           filters.businessGroup !== 'all' || 
            filters.performanceLevel !== 'all' || 
            filters.orderCountRange !== 'all' || 
            filters.dateRange !== 'all';
@@ -240,21 +229,7 @@ export const QualityAnalyticsPage: React.FC = () => {
         {/* Filter Options */}
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Business Group Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Business Group</label>
-                <select
-                  value={filters.businessGroup}
-                  onChange={(e) => setFilters(prev => ({ ...prev, businessGroup: e.target.value as FilterState['businessGroup'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                >
-                  <option value="all">All Groups</option>
-                  <option value="Ridgetop">Ridgetop</option>
-                  <option value="Skyline">Skyline</option>
-                </select>
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Performance Level Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Performance Level</label>
