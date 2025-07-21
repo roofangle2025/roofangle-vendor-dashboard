@@ -266,7 +266,7 @@ export const QualityAnalyticsPage: React.FC = () => {
                   <option value="all">All Levels</option>
                   <option value="excellent">Excellent (≥80%)</option>
                   <option value="good">Good (60-79%)</option>
-                  <option value="needs-improvement">Needs Improvement (<60%)</option>
+                  <option value="needs-improvement">Needs Improvement (&lt;60%)</option>
                 </select>
               </div>
 
