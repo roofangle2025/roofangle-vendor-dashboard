@@ -46,6 +46,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigate, onClose })
               <span className="truncate font-medium">Access Management</span>
             </button>
           </li>
+          <li>
+            <button 
+              onClick={() => onNavigate('reports-management')}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
+            >
+              <FileText className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate font-medium">Reports Management</span>
+            </button>
+          </li>
         </ul>
       </nav>
     </aside>

@@ -12,6 +12,7 @@ export const useNavigation = () => {
   const navigateToPage = (page: NavigationState['currentPage'], groupId?: string, orderId?: string) => {
     const isOrderPage = ['order-dashboard', 'place-order', 'order-process', 'orders-delivery', 'order-details'].includes(page);
     const isAccessPage = ['users', 'business-groups', 'group-details', 'ra-role', 'ra-audit-logs'].includes(page);
+    const isReportsPage = ['reports-management'].includes(page);
     
     setNavigationState(prev => ({
       ...prev,
@@ -20,7 +21,8 @@ export const useNavigation = () => {
       selectedOrderId: orderId,
       showAccessSidebar: isAccessPage,
       showOrderSidebar: isOrderPage,
-      showMenuSidebar: false
+      showMenuSidebar: false,
+      showReportsSidebar: isReportsPage
     }));
   };
 

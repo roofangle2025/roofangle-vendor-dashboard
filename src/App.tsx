@@ -106,10 +106,17 @@ function App() {
           sidebarOffset={getSidebarOffset()}
         />
         
+        <ReportsSidebar 
+          isVisible={navigationState.showReportsSidebar}
+          currentPage={navigationState.currentPage}
+          onNavigate={navigateToPage}
+          sidebarOffset={getSidebarOffset()}
+        />
+        
         <main 
           className={`flex-1 p-3 sm:p-4 lg:p-6 transition-all duration-300 ease-in-out ${
             navigationState.showMenuSidebar ? 'lg:ml-64' : ''
-          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar) ? 'lg:ml-64' : ''}`}
+          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar) ? 'lg:ml-64' : ''}`}
         >
           {renderCurrentPage()}
         </main>
