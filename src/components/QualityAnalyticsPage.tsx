@@ -3,6 +3,8 @@ import { BarChart3, User, Star, TrendingUp, Award, Users, Search, Filter, Chevro
 import { mockReportsData } from '../data/mockData';
 
 type TabType = 'sketch' | 'qa';
+type SortField = 'rank' | 'employeeName' | 'numberOfOrders' | 'averagePercentage' | 'performance';
+type SortDirection = 'asc' | 'desc';
 
 interface FilterState {
   searchTerm: string;
@@ -22,6 +24,8 @@ interface EmployeeStats {
 export const QualityAnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('sketch');
   const [showFilters, setShowFilters] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('rank');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     performanceLevel: 'all',
@@ -39,6 +43,20 @@ export const QualityAnalyticsPage: React.FC = () => {
     if (percentage >= 80) return <Award className="w-4 h-4 text-green-600" />;
     if (percentage >= 60) return <TrendingUp className="w-4 h-4 text-yellow-600" />;
     return <User className="w-4 h-4 text-red-600" />;
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection(field === 'rank' || field === 'averagePercentage' || field === 'numberOfOrders' ? 'desc' : 'asc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? '↑' : '↓';
   };
 
   // Calculate Sketch Quality Statistics
