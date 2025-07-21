@@ -17,6 +17,7 @@ import { OrderDetailsPage } from './components/OrderDetailsPage';
 import { CreateGroupModal } from './components/CreateGroupModal';
 import { ReportsManagementPage } from './components/ReportsManagementPage';
 import { QualityAnalyticsPage } from './components/QualityAnalyticsPage';
+import { VendorReportPage } from './components/VendorReportPage';
 import { useNavigation } from './hooks/useNavigation';
 
 function App() {
@@ -76,6 +77,8 @@ function App() {
         return <ReportsManagementPage />;
       case 'quality-analytics':
         return <QualityAnalyticsPage />;
+      case 'vendor-report':
+        return <VendorReportPage />;
       default:
         return <OrderDashboardPage onSelectOrder={(orderId) => navigateToPage('order-details', undefined, orderId)} />;
     }

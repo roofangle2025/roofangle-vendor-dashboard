@@ -1,10 +1,10 @@
 import React from 'react';
-import { FileText, BarChart3, TrendingUp, Download } from 'lucide-react';
+import { FileText, BarChart3, Users } from 'lucide-react';
 
 interface ReportsSidebarProps {
   isVisible: boolean;
   currentPage: string;
-  onNavigate: (page: 'reports-management' | 'quality-analytics') => void;
+  onNavigate: (page: 'reports-management' | 'quality-analytics' | 'vendor-report') => void;
   sidebarOffset: boolean;
 }
 
@@ -59,25 +59,17 @@ export const ReportsSidebar: React.FC<ReportsSidebarProps> = ({
           </li>
           <li>
             <button 
-              className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-50"
-              onClick={() => alert('Performance Reports coming soon!')}
+              onClick={() => onNavigate('vendor-report')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
+                currentPage === 'vendor-report'
+                  ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              <TrendingUp className="w-5 h-5 flex-shrink-0" />
+              <Users className="w-5 h-5 flex-shrink-0" />
               <div className="flex-1">
-                <span className="font-medium">Performance Reports</span>
-                <p className="text-xs text-gray-500 mt-0.5">Team and individual performance</p>
-              </div>
-            </button>
-          </li>
-          <li>
-            <button 
-              className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-50"
-              onClick={() => alert('Export Center coming soon!')}
-            >
-              <Download className="w-5 h-5 flex-shrink-0" />
-              <div className="flex-1">
-                <span className="font-medium">Export Center</span>
-                <p className="text-xs text-gray-500 mt-0.5">Bulk export and scheduling</p>
+                <span className="font-medium">Vendor Report</span>
+                <p className="text-xs text-gray-500 mt-0.5">Vendor performance and deliveries</p>
               </div>
             </button>
           </li>
