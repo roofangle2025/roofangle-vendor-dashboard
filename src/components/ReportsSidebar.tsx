@@ -4,7 +4,7 @@ import { FileText, BarChart3, TrendingUp, Download } from 'lucide-react';
 interface ReportsSidebarProps {
   isVisible: boolean;
   currentPage: string;
-  onNavigate: (page: 'reports-management') => void;
+  onNavigate: (page: 'reports-management' | 'quality-analytics') => void;
   sidebarOffset: boolean;
 }
 
@@ -43,8 +43,12 @@ export const ReportsSidebar: React.FC<ReportsSidebarProps> = ({
           </li>
           <li>
             <button 
-              className="w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-50"
-              onClick={() => alert('Quality Analytics coming soon!')}
+              onClick={() => onNavigate('quality-analytics')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
+                currentPage === 'quality-analytics'
+                  ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
             >
               <BarChart3 className="w-5 h-5 flex-shrink-0" />
               <div className="flex-1">
