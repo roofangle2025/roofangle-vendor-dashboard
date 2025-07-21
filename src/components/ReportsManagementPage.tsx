@@ -13,6 +13,8 @@ interface FilterState {
   businessGroup: 'all' | 'Ridgetop' | 'Skyline';
   dateRange: 'all' | 'today' | 'week' | 'month' | 'custom';
   deliveryStatus: 'all' | 'delivered' | 'pending';
+  customStartDate: string;
+  customEndDate: string;
 }
 
 export const ReportsManagementPage: React.FC = () => {
@@ -28,6 +30,8 @@ export const ReportsManagementPage: React.FC = () => {
     businessGroup: 'all',
     dateRange: 'all',
     deliveryStatus: 'all'
+    customStartDate: '',
+    customEndDate: ''
   });
 
   const formatTimestamp = (date: Date | null) => {
@@ -76,7 +80,9 @@ export const ReportsManagementPage: React.FC = () => {
       qaPerson: 'all',
       businessGroup: 'all',
       dateRange: 'all',
-      deliveryStatus: 'all'
+      deliveryStatus: 'all',
+      customStartDate: '',
+      customEndDate: ''
     });
     setSearchTerm('');
   };
@@ -87,7 +93,9 @@ export const ReportsManagementPage: React.FC = () => {
            filters.qaPerson !== 'all' || 
            filters.businessGroup !== 'all' || 
            filters.dateRange !== 'all' ||
-           filters.deliveryStatus !== 'all';
+           filters.deliveryStatus !== 'all' ||
+           filters.customStartDate !== '' ||
+           filters.customEndDate !== '';
   };
 
   // Get unique names for filter dropdowns
@@ -139,12 +147,27 @@ export const ReportsManagementPage: React.FC = () => {
       filtered = filtered.filter(report => {
         if (!report.deliverTimestamp) return filters.dateRange === 'all';
         
-        const daysDiff = Math.floor((now.getTime() - report.deliverTimestamp.getTime()) / (1000 * 60 * 60 * 24));
-        switch (filters.dateRange) {
-          case 'today': return daysDiff === 0;
-          case 'week': return daysDiff <= 7;
-          case 'month': return daysDiff <= 30;
-          default: return true;
+        if (filters.dateRange === 'custom') {
+          // Custom date range filtering
+          if (filters.customStartDate || filters.customEndDate) {
+            const reportDate = new Date(report.deliverTimestamp);
+            const startDate = filters.customStartDate ? new Date(filters.customStartDate) : null;
+            const endDate = filters.customEndDate ? new Date(filters.customEndDate + 'T23:59:59') : null;
+            
+            if (startDate && reportDate < startDate) return false;
+            if (endDate && reportDate > endDate) return false;
+            return true;
+          }
+          return true;
+        } else {
+          // Predefined date range filtering
+          const daysDiff = Math.floor((now.getTime() - report.deliverTimestamp.getTime()) / (1000 * 60 * 60 * 24));
+          switch (filters.dateRange) {
+            case 'today': return daysDiff === 0;
+            case 'week': return daysDiff <= 7;
+            case 'month': return daysDiff <= 30;
+            default: return true;
+          }
         }
       });
     }
@@ -294,7 +317,8 @@ export const ReportsManagementPage: React.FC = () => {
         {/* Filter Options */}
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Sketch Person Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Sketch Person</label>
@@ -351,6 +375,7 @@ export const ReportsManagementPage: React.FC = () => {
                   <option value="today">Today</option>
                   <option value="week">Last Week</option>
                   <option value="month">Last Month</option>
+                  <option value="custom">Custom Range</option>
                 </select>
               </div>
 
@@ -368,6 +393,40 @@ export const ReportsManagementPage: React.FC = () => {
                 </select>
               </div>
             </div>
+
+            {/* Custom Date Range Inputs */}
+            {filters.dateRange === 'custom' && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={filters.customStartDate}
+                      onChange={(e) => setFilters(prev => ({ ...prev, customStartDate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={filters.customEndDate}
+                      onChange={(e) => setFilters(prev => ({ ...prev, customEndDate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Select a custom date range to filter delivery timestamps. Leave empty for open-ended ranges.
+                </p>
+              </div>
+            )}
+          </div>
           </div>
         )}
 
