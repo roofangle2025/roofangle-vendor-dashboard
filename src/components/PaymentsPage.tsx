@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CreditCard, DollarSign, Calendar, User, Search, Filter, ChevronDown, X, Download, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, Loader } from 'lucide-react';
+import { CreditCard, DollarSign, Calendar, User, Search, Filter, ChevronDown, X, Download, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, Loader, RotateCcw } from 'lucide-react';
 import { useStripeTransactions } from '../hooks/useStripeTransactions';
 
 type SortField = 'transactionId' | 'customerName' | 'amount' | 'transactionDate' | 'status';
@@ -14,9 +14,16 @@ interface FilterState {
 }
 
 export const PaymentsPage: React.FC = () => {
-  const { transactions, loading, error, usingMockData, refreshTransactions } = useStripeTransactions();
+  const { transactions, loading, error, usingMockData, refreshTransactions, processRefund, refunding } = useStripeTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [refundData, setRefundData] = useState({
+    amount: '',
+    reason: '',
+    isPartial: false
+  });
   const [sortField, setSortField] = useState<SortField>('transactionDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filters, setFilters] = useState<FilterState>({
@@ -232,6 +239,48 @@ export const PaymentsPage: React.FC = () => {
 
   const handleViewTransaction = (transactionId: string) => {
     alert(`View transaction details for ${transactionId}`);
+  };
+
+  const handleRefundClick = (transaction: any) => {
+    setSelectedTransaction(transaction);
+    setRefundData({
+      amount: transaction.amount.toString(),
+      reason: '',
+      isPartial: false
+    });
+    setShowRefundModal(true);
+  };
+
+  const handleRefundSubmit = async () => {
+    if (!selectedTransaction) return;
+    
+    const refundAmount = refundData.isPartial ? parseFloat(refundData.amount) : undefined;
+    
+    if (refundData.isPartial && (!refundAmount || refundAmount <= 0 || refundAmount > selectedTransaction.amount)) {
+      alert('Please enter a valid refund amount');
+      return;
+    }
+    
+    const success = await processRefund({
+      transactionId: selectedTransaction.transactionId,
+      amount: refundAmount,
+      reason: refundData.reason || 'Customer refund request'
+    });
+    
+    if (success) {
+      alert(`Refund of ${formatCurrency(refundAmount || selectedTransaction.amount)} processed successfully!`);
+      setShowRefundModal(false);
+      setSelectedTransaction(null);
+      setRefundData({ amount: '', reason: '', isPartial: false });
+    } else {
+      alert('Failed to process refund. Please try again.');
+    }
+  };
+
+  const handleCloseRefundModal = () => {
+    setShowRefundModal(false);
+    setSelectedTransaction(null);
+    setRefundData({ amount: '', reason: '', isPartial: false });
   };
 
   // Calculate summary statistics
@@ -535,12 +584,29 @@ export const PaymentsPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
-                      <button
-                        onClick={() => handleViewTransaction(transaction.transactionId)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => handleViewTransaction(transaction.transactionId)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {transaction.status === 'completed' && (
+                          <button
+                            onClick={() => handleRefundClick(transaction)}
+                            disabled={refunding === transaction.transactionId}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Process Refund"
+                          >
+                            {refunding === transaction.transactionId ? (
+                              <Loader className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
@@ -692,13 +758,29 @@ export const PaymentsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <button
-                        onClick={() => handleViewTransaction(transaction.transactionId)}
-                        className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </button>
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleViewTransaction(transaction.transactionId)}
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </button>
+                        {transaction.status === 'completed' && (
+                          <button
+                            onClick={() => handleRefundClick(transaction)}
+                            disabled={refunding === transaction.transactionId}
+                            className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {refunding === transaction.transactionId ? (
+                              <Loader className="w-3 h-3 mr-1 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-3 h-3 mr-1" />
+                            )}
+                            Refund
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -707,6 +789,175 @@ export const PaymentsPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Refund Modal */}
+      {showRefundModal && selectedTransaction && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseRefundModal} />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full mx-4">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 mr-2" />
+                    <h3 className="text-lg font-medium text-gray-900">Process Refund</h3>
+                  </div>
+                  <button 
+                    onClick={handleCloseRefundModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
+                  >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+                
+                {/* Transaction Details */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Transaction Details</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Transaction ID:</span>
+                      <span className="font-medium text-gray-900">{selectedTransaction.transactionId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Customer:</span>
+                      <span className="font-medium text-gray-900">{selectedTransaction.customerName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Original Amount:</span>
+                      <span className="font-medium text-gray-900">{formatCurrency(selectedTransaction.amount)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Order Number:</span>
+                      <span className="font-medium text-gray-900">{selectedTransaction.orderNumber}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  {/* Refund Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Refund Type
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          checked={!refundData.isPartial}
+                          onChange={() => setRefundData(prev => ({ ...prev, isPartial: false, amount: selectedTransaction.amount.toString() }))}
+                          className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
+                        />
+                        <span className="ml-2 text-sm text-gray-900">
+                          Full Refund ({formatCurrency(selectedTransaction.amount)})
+                        </span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          checked={refundData.isPartial}
+                          onChange={() => setRefundData(prev => ({ ...prev, isPartial: true, amount: '' }))}
+                          className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
+                        />
+                        <span className="ml-2 text-sm text-gray-900">Partial Refund</span>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {/* Partial Refund Amount */}
+                  {refundData.isPartial && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Refund Amount *
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <DollarSign className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={selectedTransaction.amount}
+                          value={refundData.amount}
+                          onChange={(e) => setRefundData(prev => ({ ...prev, amount: e.target.value }))}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-sm"
+                          placeholder="0.00"
+                          required
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Maximum refund amount: {formatCurrency(selectedTransaction.amount)}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Refund Reason */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Refund Reason
+                    </label>
+                    <textarea
+                      value={refundData.reason}
+                      onChange={(e) => setRefundData(prev => ({ ...prev, reason: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-sm"
+                      placeholder="Enter reason for refund (optional)"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  {/* Warning */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-start">
+                      <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-800">Important</h4>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          {usingMockData 
+                            ? 'This will simulate a refund process using sample data.'
+                            : 'This will process a real refund through Stripe. The customer will receive the refund to their original payment method.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <button
+                  onClick={handleRefundSubmit}
+                  disabled={refunding === selectedTransaction.transactionId || (refundData.isPartial && (!refundData.amount || parseFloat(refundData.amount) <= 0))}
+                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
+                    refunding === selectedTransaction.transactionId || (refundData.isPartial && (!refundData.amount || parseFloat(refundData.amount) <= 0))
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                  }`}
+                >
+                  {refunding === selectedTransaction.transactionId ? (
+                    <>
+                      <Loader className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Process Refund
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleCloseRefundModal}
+                  disabled={refunding === selectedTransaction.transactionId}
+                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

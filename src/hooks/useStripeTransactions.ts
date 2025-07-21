@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 
+interface RefundRequest {
+  transactionId: string;
+  amount?: number;
+  reason?: string;
+}
+
 interface Transaction {
   id: string;
   transactionId: string;
@@ -81,6 +87,7 @@ export const useStripeTransactions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usingMockData, setUsingMockData] = useState(false);
+  const [refunding, setRefunding] = useState<string | null>(null);
 
   const loadTransactions = async () => {
     try {
@@ -184,6 +191,56 @@ export const useStripeTransactions = () => {
     loadTransactions();
   };
 
+  const processRefund = async (refundRequest: RefundRequest): Promise<boolean> => {
+    try {
+      setRefunding(refundRequest.transactionId);
+      setError(null);
+
+      // Check if using mock data
+      if (usingMockData) {
+        // Simulate refund processing for mock data
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Update transaction status to refunded
+        setTransactions(prev => prev.map(t => 
+          t.transactionId === refundRequest.transactionId 
+            ? { ...t, status: 'refunded' as const }
+            : t
+        ));
+        
+        return true;
+      }
+
+      // Process real refund through Stripe
+      const { createStripeRefund } = await import('../services/stripeService');
+      
+      const refund = await createStripeRefund(
+        refundRequest.transactionId,
+        refundRequest.amount,
+        refundRequest.reason
+      );
+      
+      if (refund) {
+        // Update transaction status to refunded
+        setTransactions(prev => prev.map(t => 
+          t.transactionId === refundRequest.transactionId 
+            ? { ...t, status: 'refunded' as const }
+            : t
+        ));
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      setError(error instanceof Error ? error.message : 'Failed to process refund');
+      return false;
+    } finally {
+      setRefunding(null);
+    }
+  };
+
   useEffect(() => {
     loadTransactions();
   }, []);
@@ -194,5 +251,7 @@ export const useStripeTransactions = () => {
     error,
     usingMockData,
     refreshTransactions,
+    processRefund,
+    refunding,
   };
 };

@@ -138,6 +138,63 @@ export const fetchStripeCharges = async (limit: number = 100) => {
   }
 };
 
+// Create a refund for a payment intent
+export const createStripeRefund = async (paymentIntentId: string, amount?: number, reason?: string): Promise<any> => {
+  try {
+    const stripe = getStripeInstance();
+    
+    const refundData: any = {
+      payment_intent: paymentIntentId,
+    };
+    
+    // Add partial amount if specified
+    if (amount) {
+      refundData.amount = Math.round(amount * 100); // Convert to cents
+    }
+    
+    // Add reason if specified
+    if (reason) {
+      refundData.reason = reason;
+      refundData.metadata = { reason };
+    }
+    
+    const refund = await stripe.refunds.create(refundData);
+    
+    return {
+      id: refund.id,
+      amount: refund.amount / 100, // Convert back to dollars
+      status: refund.status,
+      created: refund.created,
+      reason: refund.reason,
+      payment_intent: refund.payment_intent,
+    };
+  } catch (error) {
+    console.error('Error creating Stripe refund:', error);
+    throw new Error('Failed to process refund through Stripe');
+  }
+};
+
+// Fetch refunds for a payment intent
+export const fetchStripeRefunds = async (paymentIntentId: string): Promise<any[]> => {
+  try {
+    const stripe = getStripeInstance();
+    const refunds = await stripe.refunds.list({
+      payment_intent: paymentIntentId,
+    });
+    
+    return refunds.data.map(refund => ({
+      id: refund.id,
+      amount: refund.amount / 100,
+      status: refund.status,
+      created: refund.created,
+      reason: refund.reason,
+    }));
+  } catch (error) {
+    console.error('Error fetching Stripe refunds:', error);
+    return [];
+  }
+};
+
 // Convert Stripe status to our internal status
 export const mapStripeStatus = (stripeStatus: string): 'completed' | 'pending' | 'failed' | 'refunded' => {
   switch (stripeStatus) {
