@@ -3,7 +3,7 @@ import { Shield, ShoppingCart, X, FileText } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
-  onNavigate: (page: 'business-groups' | 'order-dashboard') => void;
+  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management') => void;
   onClose?: () => void;
 }
 
