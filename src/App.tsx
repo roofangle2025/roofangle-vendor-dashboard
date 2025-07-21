@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { AccessSidebar } from './components/AccessSidebar';
 import { OrderSidebar } from './components/OrderSidebar';
+import { ReportsSidebar } from './components/ReportsSidebar';
 import { UsersPage } from './components/UsersPage';
 import { BusinessGroupsPage } from './components/BusinessGroupsPage';
 import { GroupDetailsPage } from './components/GroupDetailsPage';
