@@ -443,12 +443,15 @@ export const QualityAnalyticsPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                            index === 0 ? 'bg-yellow-100 text-yellow-800' :
-                            index === 1 ? 'bg-gray-100 text-gray-800' :
-                            index === 2 ? 'bg-orange-100 text-orange-800' :
+                            sortField === 'rank' && sortDirection === 'asc' && index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                            sortField === 'rank' && sortDirection === 'asc' && index === 1 ? 'bg-gray-100 text-gray-800' :
+                            sortField === 'rank' && sortDirection === 'asc' && index === 2 ? 'bg-orange-100 text-orange-800' :
                             'bg-blue-100 text-blue-800'
                           }`}>
-                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                            {sortField === 'rank' && sortDirection === 'asc' && index === 0 ? '🥇' : 
+                             sortField === 'rank' && sortDirection === 'asc' && index === 1 ? '🥈' : 
+                             sortField === 'rank' && sortDirection === 'asc' && index === 2 ? '🥉' : 
+                             index + 1}
                           </div>
                         </div>
                       </td>
