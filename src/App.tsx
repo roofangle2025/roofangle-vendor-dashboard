@@ -19,6 +19,7 @@ import { ReportsManagementPage } from './components/ReportsManagementPage';
 import { QualityAnalyticsPage } from './components/QualityAnalyticsPage';
 import { VendorReportPage } from './components/VendorReportPage';
 import { PaymentsPage } from './components/PaymentsPage';
+import { RuntimeManagementPage } from './components/RuntimeManagementPage';
 import { useNavigation } from './hooks/useNavigation';
 
 function App() {
@@ -82,6 +83,8 @@ function App() {
         return <VendorReportPage />;
       case 'transaction-management':
         return <PaymentsPage />;
+      case 'runtime-management':
+        return <RuntimeManagementPage />;
       default:
         return <OrderDashboardPage onSelectOrder={(orderId) => navigateToPage('order-details', undefined, orderId)} />;
     }

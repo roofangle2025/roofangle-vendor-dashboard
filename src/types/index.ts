@@ -45,6 +45,7 @@ export interface NavigationState {
   showOrderSidebar: boolean;
   showReportsSidebar: boolean;
   showTransactionSidebar: boolean;
+  showRuntimeSidebar: boolean;
 }
 
 export interface Order {
@@ -124,4 +125,3 @@ export interface ReportData {
   customerName: string;
   propertyType?: string;
   service?: string;
-}

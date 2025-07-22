@@ -8,7 +8,8 @@ export const useNavigation = () => {
     showMenuSidebar: false,
     showOrderSidebar: true,
     showReportsSidebar: false,
-    showTransactionSidebar: false
+    showTransactionSidebar: false,
+    showRuntimeSidebar: false
   });
 
   const navigateToPage = (page: NavigationState['currentPage'], groupId?: string, orderId?: string) => {

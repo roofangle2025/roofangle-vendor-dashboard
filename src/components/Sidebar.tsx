@@ -1,9 +1,9 @@
 import React from 'react';
-import { Shield, ShoppingCart, X, FileText, CreditCard } from 'lucide-react';
+import { Shield, ShoppingCart, X, FileText, CreditCard, Settings } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
-  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management') => void;
+  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management' | 'runtime-management') => void;
   onClose?: () => void;
 }
 
