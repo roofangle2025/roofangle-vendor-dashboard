@@ -81,7 +81,7 @@ function App() {
         return <QualityAnalyticsPage />;
       case 'vendor-report':
         return <VendorReportPage />;
-      case 'transaction-management':
+      case 'payments':
         return <PaymentsPage />;
       case 'runtime-management':
         return <RuntimeManagementPage />;

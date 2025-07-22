@@ -16,7 +16,8 @@ export const useNavigation = () => {
     const isOrderPage = ['order-dashboard', 'place-order', 'order-process', 'orders-delivery', 'order-details'].includes(page);
     const isAccessPage = ['users', 'business-groups', 'group-details', 'ra-role', 'ra-audit-logs'].includes(page);
     const isReportsPage = ['reports-management', 'quality-analytics', 'vendor-report'].includes(page);
-    const isTransactionPage = ['transaction-management'].includes(page);
+    const isPaymentsPage = ['payments'].includes(page);
+    const isRuntimePage = ['runtime-management'].includes(page);
     
     setNavigationState(prev => ({
       ...prev,
@@ -27,7 +28,8 @@ export const useNavigation = () => {
       showOrderSidebar: isOrderPage,
       showMenuSidebar: false,
       showReportsSidebar: isReportsPage,
-      showTransactionSidebar: isTransactionPage
+      showPaymentsSidebar: isPaymentsPage,
+      showRuntimeSidebar: isRuntimePage
     }));
   };
 

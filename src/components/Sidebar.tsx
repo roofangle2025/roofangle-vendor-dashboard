@@ -3,7 +3,7 @@ import { Shield, ShoppingCart, X, FileText, CreditCard, Settings } from 'lucide-
 
 interface SidebarProps {
   isOpen: boolean;
-  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management' | 'runtime-management') => void;
+  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management' | 'payments' | 'runtime-management') => void;
   onClose?: () => void;
 }
 
@@ -57,11 +57,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigate, onClose })
           </li>
           <li>
             <button 
-              onClick={() => onNavigate('transaction-management')}
+              onClick={() => onNavigate('payments')}
               className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
             >
               <CreditCard className="w-5 h-5 flex-shrink-0" />
-              <span className="truncate font-medium">Transaction Management</span>
+              <span className="truncate font-medium">Payments</span>
+            </button>
+          </li>
+          <li>
+            <button 
+              onClick={() => onNavigate('runtime-management')}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
+            >
+              <Settings className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate font-medium">Runtime Management</span>
             </button>
           </li>
         </ul>
