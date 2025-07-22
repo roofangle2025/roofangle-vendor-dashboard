@@ -125,3 +125,4 @@ export interface ReportData {
   customerName: string;
   propertyType?: string;
   service?: string;
+}
