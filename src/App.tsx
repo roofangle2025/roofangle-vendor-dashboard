@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { AccessSidebar } from './components/AccessSidebar';
 import { OrderSidebar } from './components/OrderSidebar';
 import { ReportsSidebar } from './components/ReportsSidebar';
+import { FinancialSidebar } from './components/FinancialSidebar';
 import { UsersPage } from './components/UsersPage';
 import { BusinessGroupsPage } from './components/BusinessGroupsPage';
 import { GroupDetailsPage } from './components/GroupDetailsPage';
@@ -19,6 +20,7 @@ import { ReportsManagementPage } from './components/ReportsManagementPage';
 import { QualityAnalyticsPage } from './components/QualityAnalyticsPage';
 import { VendorReportPage } from './components/VendorReportPage';
 import { PaymentsPage } from './components/PaymentsPage';
+import { VendorPaymentsPage } from './components/VendorPaymentsPage';
 import { RuntimeManagementPage } from './components/RuntimeManagementPage';
 import { useNavigation } from './hooks/useNavigation';
 
@@ -83,6 +85,8 @@ function App() {
         return <VendorReportPage />;
       case 'payments':
         return <PaymentsPage />;
+      case 'vendor-payments':
+        return <VendorPaymentsPage />;
       case 'runtime-management':
         return <RuntimeManagementPage />;
       default:
@@ -129,10 +133,17 @@ function App() {
           sidebarOffset={getSidebarOffset()}
         />
         
+        <FinancialSidebar 
+          isVisible={navigationState.showFinancialSidebar}
+          currentPage={navigationState.currentPage}
+          onNavigate={navigateToPage}
+          sidebarOffset={getSidebarOffset()}
+        />
+        
         <main 
           className={`flex-1 p-3 sm:p-4 lg:p-6 transition-all duration-300 ease-in-out ${
             navigationState.showMenuSidebar ? 'lg:ml-64' : ''
-          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar) ? 'lg:ml-64' : ''}`}
+          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar || navigationState.showFinancialSidebar) ? 'lg:ml-64' : ''}`}
         >
           {renderCurrentPage()}
         </main>
