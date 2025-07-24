@@ -148,7 +148,7 @@ export const VendorPaymentsPage: React.FC = () => {
     invoiceNumber: '',
     businessGroup: 'Ridgetop' as string,
     description: '',
-    attachments: [] as any[]
+    attachments: [] as any[],
     notes: ''
   });
 
