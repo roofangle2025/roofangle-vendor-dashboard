@@ -530,7 +530,7 @@ export const VendorPaymentsPage: React.FC = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };</parameter>
+  };
 
   const handleExportPayments = () => {
     const headers = ['Vendor Name', 'Vendor Email', 'Amount', 'Status', 'Payment Method', 'Due Date', 'Payment Date', 'Invoice Number', 'Business Group', 'Category', 'Description'];
@@ -1051,46 +1051,13 @@ export const VendorPaymentsPage: React.FC = () => {
                           <option value="failed">Failed</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
-                          onClick={() => handlePayClick(payment)}
-                          disabled={payment.status === 'completed' || processingPayment === payment.id}
-                          className={`inline-flex items-center px-3 py-1 rounded-md transition-colors duration-200 text-xs font-medium ${
-                            payment.status === 'completed' 
-                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                              : processingPayment === payment.id
-                                ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
-                                : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
-                          {processingPayment === payment.id ? (
-                            <>
-                              <div className="w-3 h-3 mr-1 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                              Processing
-                            </>
-                          ) : payment.status === 'completed' ? (
-                            <>
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Paid
-                            </>
-                          ) : (
-                            <>
-                              <DollarSign className="w-3 h-3 mr-1" />
-                              Pay
-                            </>
-                          )}
-                        </button>
                         
-                        {/* File Upload Button */}
-                        <label className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium cursor-pointer">
-                          <Upload className="w-3 h-3 mr-1" />
-                          Upload
-                          <input
-                            type="file"
-                            multiple
-                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                            onChange={(e) => e.target.files && handleFileUpload(payment.id, e.target.files)}
-                            className="hidden"
-                          />
-                        </label></parameter>
+                        <button
+                          onClick={() => handleDeletePayment(payment.id)}
+                          className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
