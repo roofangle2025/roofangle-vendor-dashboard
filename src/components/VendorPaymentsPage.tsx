@@ -169,7 +169,7 @@ export const VendorPaymentsPage: React.FC = () => {
     onUploadError: (error) => {
       alert('Upload error: ' + error);
     }
-  });</parameter>
+  });
 
   const getStatusColor = (status: VendorPayment['status']) => {
     switch (status) {
