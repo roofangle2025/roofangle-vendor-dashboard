@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { UserPlus, Clock, Trash2, RotateCcw, UserX, UserCheck, Edit, Search, Filter, ChevronDown, X, Users } from 'lucide-react';
-import { User } from '../types';
+import type { User } from '../types';
 import { mockUsers } from '../data/mockData';
 import { InviteUserForm } from './InviteUserForm';
 import { EditUserModal } from './EditUserModal';

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft, Users, Shield, Activity, Plus, UserPlus, Settings, RotateCcw, Trash2, UserX, UserCheck, Edit, Power, PowerOff, Search, Filter, ChevronDown, X } from 'lucide-react';
-import { BusinessGroup, User, Role, ActivityLog } from '../types';
+import type { BusinessGroup, User, Role, ActivityLog } from '../types';
 import { mockBusinessGroups, mockRoles, mockActivityLogs } from '../data/mockData';
 import { AddUserToGroupModal } from './AddUserToGroupModal';
 import { EditUserModal } from './EditUserModal';

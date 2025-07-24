@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, FolderEdit as UserEdit, Shield } from 'lucide-react';
-import { User } from '../types';
+import type { User } from '../types';
 import { mockRoles } from '../data/mockData';
 
 interface EditUserModalProps {
