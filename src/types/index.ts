@@ -1,4 +1,4 @@
-export interface User {
+interface User {
   id: string;
   firstName: string;
   lastName: string;
@@ -128,3 +128,4 @@ export interface ReportData {
 }
 
 export const __dummyExport = true;
+export type { User };
