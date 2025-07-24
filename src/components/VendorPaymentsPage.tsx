@@ -391,7 +391,7 @@ export const VendorPaymentsPage: React.FC = () => {
           size: f.file.size,
           type: f.file.type,
           uploadedAt: f.uploadedAt
-        }))
+        })),
         approvedBy: 'Yashwnath K',
         notes: newPayment.notes.trim()
       };
