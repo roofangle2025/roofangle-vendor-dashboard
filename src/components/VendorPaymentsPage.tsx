@@ -1270,3 +1270,5 @@ export const VendorPaymentsPage: React.FC = () => {
 };
 
 export { VendorPaymentsPage };
+
+export { VendorPaymentsPage }
