@@ -407,7 +407,7 @@ export const VendorPaymentsPage: React.FC = () => {
         invoiceNumber: '',
         businessGroup: 'Ridgetop',
         description: '',
-        attachments: []
+        attachments: [],
         notes: ''
       });
       clearAllFiles();
