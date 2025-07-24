@@ -126,3 +126,5 @@ export interface ReportData {
   propertyType?: string;
   service?: string;
 }
+
+export const __dummyExport = true;
