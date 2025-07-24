@@ -1300,3 +1300,5 @@ export const VendorPaymentsPage: React.FC = () => {
     </div>
   );
 };
+
+export { VendorPaymentsPage }
