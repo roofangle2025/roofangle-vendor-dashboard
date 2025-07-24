@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Users, DollarSign, Calendar, User, Search, Filter, ChevronDown, X, Download, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, Loader, Plus, Edit, Trash2 } from 'lucide-react';
+import { DollarSign, Users, Clock, AlertCircle, Search, Filter, ChevronDown, X, Download, Plus, Calendar, CreditCard, CheckCircle, Eye, Edit, Trash2, Upload, FileText, Image, File } from 'lucide-react';
+import { useFileUpload } from '../hooks/useFileUpload';
 
 interface VendorPayment {
   id: string;
@@ -121,6 +122,10 @@ export const VendorPaymentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<VendorPayment | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'manual'>('stripe');
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [editingPayment, setEditingPayment] = useState<VendorPayment | null>(null);
   const [sortField, setSortField] = useState<SortField>('dueDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -142,9 +147,29 @@ export const VendorPaymentsPage: React.FC = () => {
     description: '',
     invoiceNumber: '',
     businessGroup: 'Ridgetop' as string,
-    category: 'contractor_fees' as VendorPayment['category'],
+    description: '',
+    attachments: [] as any[]
     notes: ''
   });
+
+  // File upload hook for payment documents
+  const {
+    uploadedFiles,
+    isUploading,
+    uploadFiles,
+    removeFile,
+    clearAllFiles
+  } = useFileUpload({
+    maxFileSize: 10,
+    acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'],
+    maxFiles: 5,
+    onUploadComplete: (files) => {
+      console.log('Payment documents uploaded:', files);
+    },
+    onUploadError: (error) => {
+      alert('Upload error: ' + error);
+    }
+  });</parameter>
 
   const getStatusColor = (status: VendorPayment['status']) => {
     switch (status) {
@@ -359,7 +384,14 @@ export const VendorPaymentsPage: React.FC = () => {
         description: newPayment.description.trim(),
         invoiceNumber: newPayment.invoiceNumber.trim(),
         businessGroup: newPayment.businessGroup,
-        category: newPayment.category,
+        createdAt: new Date(),
+        attachments: uploadedFiles.map(f => ({
+          id: f.id,
+          name: f.file.name,
+          size: f.file.size,
+          type: f.file.type,
+          uploadedAt: f.uploadedAt
+        }))
         approvedBy: 'Yashwnath K',
         notes: newPayment.notes.trim()
       };
@@ -374,9 +406,11 @@ export const VendorPaymentsPage: React.FC = () => {
         description: '',
         invoiceNumber: '',
         businessGroup: 'Ridgetop',
-        category: 'contractor_fees',
+        description: '',
+        attachments: []
         notes: ''
       });
+      clearAllFiles();
       setShowAddModal(false);
       alert(`Vendor payment for ${payment.vendorName} added successfully!`);
     }
@@ -400,6 +434,102 @@ export const VendorPaymentsPage: React.FC = () => {
       setPayments(prev => prev.filter(p => p.id !== paymentId));
     }
   };
+
+  const handlePayClick = (payment: VendorPayment) => {
+    setSelectedPayment(payment);
+    setPaymentMethod('stripe');
+    setShowPayModal(true);
+  };
+
+  const handleProcessPayment = async () => {
+    if (!selectedPayment) return;
+    
+    setProcessingPayment(selectedPayment.id);
+    
+    try {
+      if (paymentMethod === 'stripe') {
+        // Simulate Stripe payment processing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Update payment status to completed
+        setPayments(prev => prev.map(p => 
+          p.id === selectedPayment.id 
+            ? { ...p, status: 'completed', paidAt: new Date() }
+            : p
+        ));
+        
+        alert(`Payment of ${formatCurrency(selectedPayment.amount)} to ${selectedPayment.vendorName} processed successfully via Stripe!`);
+      } else {
+        // Manual payment - just update status
+        setPayments(prev => prev.map(p => 
+          p.id === selectedPayment.id 
+            ? { ...p, status: 'processing' }
+            : p
+        ));
+        
+        alert(`Payment marked as processing. Upload supporting documents to complete the record.`);
+      }
+      
+      setShowPayModal(false);
+      setSelectedPayment(null);
+    } catch (error) {
+      alert('Payment processing failed. Please try again.');
+    } finally {
+      setProcessingPayment(null);
+    }
+  };
+
+  const handleFileUpload = (paymentId: string, files: FileList) => {
+    // In a real app, you would upload files to server and associate with payment
+    const fileArray = Array.from(files);
+    console.log(`Uploading ${fileArray.length} files for payment ${paymentId}:`, fileArray);
+    
+    // Update payment with file attachments
+    setPayments(prev => prev.map(p => 
+      p.id === paymentId 
+        ? { 
+            ...p, 
+            attachments: [
+              ...(p.attachments || []),
+              ...fileArray.map(file => ({
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                uploadedAt: new Date()
+              }))
+            ]
+          }
+        : p
+    ));
+    
+    alert(`${fileArray.length} document(s) uploaded successfully!`);
+  };
+
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.toLowerCase().split('.').pop();
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="w-4 h-4 text-red-600" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return <Image className="w-4 h-4 text-green-600" />;
+      case 'doc':
+      case 'docx':
+        return <File className="w-4 h-4 text-blue-600" />;
+      default:
+        return <File className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };</parameter>
 
   const handleExportPayments = () => {
     const headers = ['Vendor Name', 'Vendor Email', 'Amount', 'Status', 'Payment Method', 'Due Date', 'Payment Date', 'Invoice Number', 'Business Group', 'Category', 'Description'];
@@ -867,6 +997,48 @@ export const VendorPaymentsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center space-x-2">
+                        <button 
+                          onClick={() => handlePayClick(payment)}
+                          disabled={payment.status === 'completed' || processingPayment === payment.id}
+                          className={`inline-flex items-center px-3 py-1 rounded-md transition-colors duration-200 text-xs font-medium ${
+                            payment.status === 'completed' 
+                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : processingPayment === payment.id
+                                ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
+                        >
+                          {processingPayment === payment.id ? (
+                            <>
+                              <div className="w-3 h-3 mr-1 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                              Processing
+                            </>
+                          ) : payment.status === 'completed' ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Paid
+                            </>
+                          ) : (
+                            <>
+                              <DollarSign className="w-3 h-3 mr-1" />
+                              Pay
+                            </>
+                          )}
+                        </button>
+                        
+                        {/* File Upload Button */}
+                        <label className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium cursor-pointer">
+                          <Upload className="w-3 h-3 mr-1" />
+                          Upload
+                          <input
+                            type="file"
+                            multiple
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            onChange={(e) => e.target.files && handleFileUpload(payment.id, e.target.files)}
+                            className="hidden"
+                          />
+                        </label>
+                        
                         <select
                           value={payment.status}
                           onChange={(e) => handleUpdateStatus(payment.id, e.target.value as VendorPayment['status'])}
@@ -878,12 +1050,46 @@ export const VendorPaymentsPage: React.FC = () => {
                           <option value="failed">Failed</option>
                           <option value="cancelled">Cancelled</option>
                         </select>
-                        <button
-                          onClick={() => handleDeletePayment(payment.id)}
+                          onClick={() => handlePayClick(payment)}
+                          disabled={payment.status === 'completed' || processingPayment === payment.id}
+                          className={`inline-flex items-center px-3 py-1 rounded-md transition-colors duration-200 text-xs font-medium ${
+                            payment.status === 'completed' 
+                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : processingPayment === payment.id
+                                ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
                           className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
-                        >
-                          <Trash2 className="w-4 h-4" />
+                          {processingPayment === payment.id ? (
+                            <>
+                              <div className="w-3 h-3 mr-1 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                              Processing
+                            </>
+                          ) : payment.status === 'completed' ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Paid
+                            </>
+                          ) : (
+                            <>
+                              <DollarSign className="w-3 h-3 mr-1" />
+                              Pay
+                            </>
+                          )}
                         </button>
+                        
+                        {/* File Upload Button */}
+                        <label className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium cursor-pointer">
+                          <Upload className="w-3 h-3 mr-1" />
+                          Upload
+                          <input
+                            type="file"
+                            multiple
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            onChange={(e) => e.target.files && handleFileUpload(payment.id, e.target.files)}
+                            className="hidden"
+                          />
+                        </label></parameter>
                       </div>
                     </td>
                   </tr>
