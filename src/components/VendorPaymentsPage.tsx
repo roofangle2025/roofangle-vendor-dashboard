@@ -17,7 +17,14 @@ interface VendorPayment {
   category: 'contractor_fees' | 'materials' | 'services' | 'equipment' | 'other';
   approvedBy?: string;
   paidBy?: string;
-  notes?: string;
+  paidAt?: Date;
+  attachments?: {
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+    uploadedAt: Date;
+  }[];
 }
 
 type SortField = 'vendorName' | 'amount' | 'paymentDate' | 'dueDate' | 'status';
