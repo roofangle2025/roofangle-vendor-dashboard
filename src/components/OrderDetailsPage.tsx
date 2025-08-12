@@ -60,8 +60,8 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignModalData, setAssignModalData] = useState<AssignModalData>({
     sketchPersonId: '',
-    qaPersonId: '',
-    comment: ''
+    qaPersonId: '', // Keep for compatibility but won't be used
+    comment: '' // Keep for compatibility but won't be used
   });
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -247,22 +247,21 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
   const handleAssignTo = () => {
     setAssignModalData({
       sketchPersonId: '',
-      qaPersonId: '',
-      comment: ''
+      qaPersonId: '', // Keep for compatibility
+      comment: '' // Keep for compatibility
     });
     setShowAssignModal(true);
   };
 
   const handleAssignSubmit = () => {
-    if (assignModalData.sketchPersonId && assignModalData.qaPersonId && assignModalData.comment.trim()) {
+    if (assignModalData.sketchPersonId) {
       const sketchUser = sketchUsers.find(u => u.id === assignModalData.sketchPersonId);
-      const qaUser = qaUsers.find(u => u.id === assignModalData.qaPersonId);
       
-      if (sketchUser && qaUser) {
+      if (sketchUser) {
         // Add comment to the communication log
         const comment: Comment = {
           id: Date.now().toString(),
-          message: `Order assigned - Sketch: ${sketchUser.firstName} ${sketchUser.lastName}, QA: ${qaUser.firstName} ${qaUser.lastName}. ${assignModalData.comment}`,
+          message: `Order assigned to ${sketchUser.firstName} ${sketchUser.lastName} for sketch work.`,
           timestamp: new Date(),
           author: 'Yashwnath K',
           authorInitials: 'YK',
@@ -278,15 +277,14 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
             status: 'in-progress',
             processStatus: 'sketch' as any,
             sketchPersonId: assignModalData.sketchPersonId,
-            qaPersonId: assignModalData.qaPersonId,
+            qaPersonId: '', // Clear QA assignment for now
             assignedTo: `${sketchUser.firstName} ${sketchUser.lastName}`
           });
           
           // Update edit values to reflect the assignment
           setEditValues(prev => ({
             ...prev,
-            sketchName: `${sketchUser.firstName} ${sketchUser.lastName}`,
-            qaPersonName: `${qaUser.firstName} ${qaUser.lastName}`
+            sketchName: `${sketchUser.firstName} ${sketchUser.lastName}`
           }));
         }
         
