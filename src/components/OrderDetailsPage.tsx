@@ -951,9 +951,9 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
                   onClick={handleAssignSubmit}
-                  disabled={!assignModalData.sketchPersonId || !assignModalData.qaPersonId || !assignModalData.comment.trim()}
+                  disabled={!assignModalData.sketchPersonId}
                   className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
-                    assignModalData.sketchPersonId && assignModalData.qaPersonId && assignModalData.comment.trim()
+                    assignModalData.sketchPersonId
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
                   }`}
