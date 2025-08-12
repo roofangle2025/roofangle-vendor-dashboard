@@ -247,10 +247,37 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
   const handleAssignTo = () => {
     setAssignModalData({
       sketchPersonId: '',
-      qaPersonId: '', // Keep for compatibility
-      comment: '' // Keep for compatibility
+      qaPersonId: '',
+      comment: ''
     });
     setShowAssignModal(true);
+  };
+
+  const handleCancelOrder = () => {
+    if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+      // Add comment to the communication log
+      const comment: Comment = {
+        id: Date.now().toString(),
+        message: 'Order cancelled by user request.',
+        timestamp: new Date(),
+        author: 'Yashwnath K',
+        authorInitials: 'YK',
+        type: 'update'
+      };
+      
+      setComments(prev => [...prev, comment]);
+      
+      // Update order status
+      if (orderData) {
+        setOrderData({
+          ...orderData,
+          status: 'cancelled',
+          processStatus: 'cancelled' as any
+        });
+      }
+      
+      alert('Order cancelled successfully!');
+    }
   };
 
   const handleAssignSubmit = () => {
@@ -393,14 +420,26 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       case 'unassigned':
         return {
           show: true,
-          text: 'Assign To',
-          icon: UserPlus,
-          color: 'bg-blue-600 hover:bg-blue-700',
-          action: handleAssignTo
+          showMultiple: true,
+          buttons: [
+            {
+              text: 'Cancel Order',
+              icon: X,
+              color: 'bg-red-600 hover:bg-red-700',
+              action: handleCancelOrder
+            },
+            {
+              text: 'Assign',
+              icon: UserPlus,
+              color: 'bg-blue-600 hover:bg-blue-700',
+              action: handleAssignTo
+            }
+          ]
         };
       case 'in-progress':
         return {
           show: true,
+          showMultiple: false,
           text: 'Move to QA',
           icon: CheckCircle,
           color: 'bg-blue-600 hover:bg-blue-700',
@@ -409,6 +448,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       case 'qa-review':
         return {
           show: true,
+          showMultiple: false,
           text: 'Ready',
           icon: ArrowRight,
           color: 'bg-green-600 hover:bg-green-700',
@@ -417,13 +457,14 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       case 'ready-for-delivery':
         return {
           show: true,
+          showMultiple: false,
           text: 'Deliver',
           icon: Truck,
           color: 'bg-purple-600 hover:bg-purple-700',
           action: handleDeliver
         };
       default:
-        return { show: false };
+        return { show: false, showMultiple: false };
     }
   };
 
@@ -594,7 +635,7 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
             )}
 
             {/* Action Button */}
-            {actionButton.show && (
+            {actionButton.show && !actionButton.showMultiple && (
               <div className="flex items-center">
                 <button
                   onClick={actionButton.action}
@@ -603,6 +644,22 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
                   <actionButton.icon className="w-4 h-4 mr-2" />
                   {actionButton.text}
                 </button>
+              </div>
+            )}
+            
+            {/* Multiple Action Buttons for Unassigned Orders */}
+            {actionButton.show && actionButton.showMultiple && (
+              <div className="flex items-center space-x-2">
+                {actionButton.buttons?.map((button, index) => (
+                  <button
+                    key={index}
+                    onClick={button.action}
+                    className={`inline-flex items-center px-4 py-2 text-white rounded-lg transition-colors duration-200 font-medium text-sm ${button.color}`}
+                  >
+                    <button.icon className="w-4 h-4 mr-2" />
+                    {button.text}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -911,39 +968,6 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
                         </option>
                       ))}
                     </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      QA Person *
-                    </label>
-                    <select
-                      value={assignModalData.qaPersonId}
-                      onChange={(e) => setAssignModalData(prev => ({ ...prev, qaPersonId: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      required
-                    >
-                      <option value="">Select QA person...</option>
-                      {qaUsers.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName} ({user.email})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Assignment Comment *
-                    </label>
-                    <textarea
-                      value={assignModalData.comment}
-                      onChange={(e) => setAssignModalData(prev => ({ ...prev, comment: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="Add a comment about the assignment..."
-                      rows={3}
-                      required
-                    />
                   </div>
                 </div>
               </div>
