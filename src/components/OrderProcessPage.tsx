@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, ChevronDown, X, Clock, CheckCircle, AlertCircle, Package, Eye, Users, FileText, Calendar, ArrowRight, RotateCcw, XCircle, MapPin, Hash, Home, FileCheck } from 'lucide-react';
+import { Search, Filter, ChevronDown, X, Clock, CheckCircle, AlertCircle, Package, Eye, Users, FileText, Calendar, ArrowRight, RotateCcw, XCircle, MapPin, Hash, Home, FileCheck, UserPlus } from 'lucide-react';
 import { mockOrders } from '../data/mockData';
 import { Order } from '../types';
 
@@ -22,6 +22,13 @@ interface OrderProcessPageProps {
 export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [activeTab, setActiveTab] = useState<TabType>('new');
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
+  const [bulkAssignData, setBulkAssignData] = useState({
+    sketchPersonId: '',
+    qaPersonId: '',
+    comment: ''
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<SortField>('deliveryDate');
@@ -33,6 +40,16 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
     propertyType: 'all',
     reportType: 'all'
   });
+
+  // Get available users for assignment
+  const sketchUsers = [
+    { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane.smith@example.com' },
+    { id: '4', firstName: 'Sarah', lastName: 'Wilson', email: 'sarah.wilson@example.com' }
+  ];
+  const qaUsers = [
+    { id: '3', firstName: 'Mike', lastName: 'Johnson', email: 'mike.johnson@example.com' },
+    { id: '5', firstName: 'David', lastName: 'Brown', email: 'david.brown@example.com' }
+  ];
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -236,6 +253,66 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
     return getTabOrders(tab).length;
   };
 
+  const handleSelectOrder = (orderId: string) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const currentTabOrderIds = getTabOrders(activeTab).map(order => order.id);
+    if (selectedOrders.length === currentTabOrderIds.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(currentTabOrderIds);
+    }
+  };
+
+  const handleBulkAssign = () => {
+    if (selectedOrders.length === 0) {
+      alert('Please select at least one order to assign.');
+      return;
+    }
+    
+    setBulkAssignData({
+      sketchPersonId: '',
+      qaPersonId: '',
+      comment: ''
+    });
+    setShowBulkAssignModal(true);
+  };
+
+  const handleBulkAssignSubmit = () => {
+    if (bulkAssignData.sketchPersonId && bulkAssignData.qaPersonId && bulkAssignData.comment.trim()) {
+      const sketchUser = sketchUsers.find(u => u.id === bulkAssignData.sketchPersonId);
+      const qaUser = qaUsers.find(u => u.id === bulkAssignData.qaPersonId);
+      
+      if (sketchUser && qaUser) {
+        // Update selected orders
+        setOrders(prev => prev.map(order => 
+          selectedOrders.includes(order.id) 
+            ? {
+                ...order,
+                status: 'in-progress' as const,
+                processStatus: 'sketch' as any,
+                sketchPersonId: bulkAssignData.sketchPersonId,
+                qaPersonId: bulkAssignData.qaPersonId,
+                assignedTo: `${sketchUser.firstName} ${sketchUser.lastName}`
+              }
+            : order
+        ));
+        
+        setShowBulkAssignModal(false);
+        setBulkAssignData({ sketchPersonId: '', qaPersonId: '', comment: '' });
+        setSelectedOrders([]);
+        
+        alert(`${selectedOrders.length} orders assigned successfully to ${sketchUser.firstName} ${sketchUser.lastName} (Sketch) and ${qaUser.firstName} ${qaUser.lastName} (QA)!`);
+      }
+    }
+  };
+
   const tabs: { id: TabType; label: string; description: string }[] = [
     { id: 'new', label: 'New Orders', description: 'Unassigned orders ready for processing' },
     { id: 'sketch', label: 'Sketch', description: 'Orders in progress' },
@@ -249,6 +326,20 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Order Process</h1>
+        {selectedOrders.length > 0 && (
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-600">
+              {selectedOrders.length} order{selectedOrders.length !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={handleBulkAssign}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Assign Selected
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -505,6 +596,14 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input
+                        type="checkbox"
+                        checked={getTabOrders(activeTab).length > 0 && selectedOrders.length === getTabOrders(activeTab).length}
+                        onChange={handleSelectAll}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </th>
                     <th 
                       className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                       onClick={() => handleSort('deliveryDate')}
@@ -577,7 +676,7 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredAndSortedOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-6 py-12 text-center">
+                      <td colSpan={10} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <Package className="w-12 h-12 text-gray-300 mb-4" />
                           <p className="text-gray-500 text-lg font-medium">No orders found</p>
@@ -605,6 +704,17 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                         className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                         onClick={() => onSelectOrder(order.id)}
                       >
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrders.includes(order.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleSelectOrder(order.id);
+                            }}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                        </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
                             {formatDueTime(order.deliveryDate)}
@@ -673,6 +783,113 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
           </div>
         </div>
       </div>
+
+      {/* Bulk Assign Modal */}
+      {showBulkAssignModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowBulkAssignModal(false)} />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full mx-4">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mr-2" />
+                    <h3 className="text-lg font-medium text-gray-900">Bulk Assign Orders</h3>
+                  </div>
+                  <button 
+                    onClick={() => setShowBulkAssignModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
+                  >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+                
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    Assigning {selectedOrders.length} order{selectedOrders.length !== 1 ? 's' : ''} to team members
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sketch Person *
+                    </label>
+                    <select
+                      value={bulkAssignData.sketchPersonId}
+                      onChange={(e) => setBulkAssignData(prev => ({ ...prev, sketchPersonId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      required
+                    >
+                      <option value="">Select sketch person...</option>
+                      {sketchUsers.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      QA Person *
+                    </label>
+                    <select
+                      value={bulkAssignData.qaPersonId}
+                      onChange={(e) => setBulkAssignData(prev => ({ ...prev, qaPersonId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      required
+                    >
+                      <option value="">Select QA person...</option>
+                      {qaUsers.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assignment Comment *
+                    </label>
+                    <textarea
+                      value={bulkAssignData.comment}
+                      onChange={(e) => setBulkAssignData(prev => ({ ...prev, comment: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      placeholder="Add a comment about the bulk assignment..."
+                      rows={3}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <button
+                  onClick={handleBulkAssignSubmit}
+                  disabled={!bulkAssignData.sketchPersonId || !bulkAssignData.qaPersonId || !bulkAssignData.comment.trim()}
+                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
+                    bulkAssignData.sketchPersonId && bulkAssignData.qaPersonId && bulkAssignData.comment.trim()
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Assign {selectedOrders.length} Order{selectedOrders.length !== 1 ? 's' : ''}
+                </button>
+                <button
+                  onClick={() => setShowBulkAssignModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
