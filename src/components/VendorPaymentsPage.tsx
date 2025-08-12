@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { DollarSign, Users, Clock, AlertCircle, Search, Filter, ChevronDown, X, Download, Plus, Calendar, CreditCard, CheckCircle, Eye, Edit, Trash2, Upload, FileText, Image, File } from 'lucide-react';
 import type { User } from '../types';
-import type { User } from '../types';
 import { useFileUpload } from '../hooks/useFileUpload';
 
 interface VendorPayment {
