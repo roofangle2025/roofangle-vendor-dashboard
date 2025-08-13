@@ -192,7 +192,7 @@ export const ServicesPage: React.FC = () => {
     
     setEditingPricing(prev => {
       if (!prev) return null;
-      const currentPricing = prev.servicePrices[serviceId] || { commercialPrice: 0, residentialPrice: 0 };
+      const currentPricing = prev.servicePrices[serviceId] || { commercialPrice: 0, residentialPrice: 0, deliveryTimeHours: 48 };
       return {
         ...prev,
         servicePrices: {
