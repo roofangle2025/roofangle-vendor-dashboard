@@ -874,6 +874,9 @@ export const ServicesPage: React.FC = () => {
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                             placeholder="0.00"
                             required
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Additional charge for PDF delivery</p>
                       </div>
                     </div>
                   </div>
@@ -882,13 +885,17 @@ export const ServicesPage: React.FC = () => {
               
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
-                  {/* Service Info Display */}
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-gray-900 mb-1">{service.name}</div>
-                    <div className="text-sm text-blue-600 font-medium">
-                      Delivery: {formatDeliveryTime(service.deliveryTimeHours)}
-                    </div>
-                  </div>
+                  onClick={handleSavePricing}
+                  className="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm transition-colors duration-200"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => setShowPricingModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
