@@ -784,42 +784,38 @@ export const ServicesPage: React.FC = () => {
                               <label className="block text-xs font-medium text-gray-700 mb-1">
                                 Commercial Delivery Time *
                               </label>
-                              <select
-                                value={getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours}
-                                onChange={(e) => updateServiceDeliveryTime(service.id, 'commercial', parseInt(e.target.value))}
+                              <input
+                                type="number"
+                                min="1"
+                                max="720"
+                                value={getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours || 48}
+                                onChange={(e) => updateServiceDeliveryTime(service.id, 'commercial', parseInt(e.target.value) || 48)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                placeholder="48"
                                 required
-                              >
-                                <option value={24}>24 hrs (1 day)</option>
-                                <option value={36}>36 hrs (1.5 days)</option>
-                                <option value={48}>48 hrs (2 days)</option>
-                                <option value={60}>60 hrs (2.5 days)</option>
-                                <option value={72}>72 hrs (3 days)</option>
-                                <option value={96}>96 hrs (4 days)</option>
-                                <option value={120}>120 hrs (5 days)</option>
-                                <option value={168}>168 hrs (1 week)</option>
-                              </select>
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Current: {formatDeliveryTime(getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours || 48)}
+                              </p>
                             </div>
                             
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">
                                 Residential Delivery Time *
                               </label>
-                              <select
-                                value={getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours}
-                                onChange={(e) => updateServiceDeliveryTime(service.id, 'residential', parseInt(e.target.value))}
+                              <input
+                                type="number"
+                                min="1"
+                                max="720"
+                                value={getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours || 36}
+                                onChange={(e) => updateServiceDeliveryTime(service.id, 'residential', parseInt(e.target.value) || 36)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                placeholder="36"
                                 required
-                              >
-                                <option value={24}>24 hrs (1 day)</option>
-                                <option value={36}>36 hrs (1.5 days)</option>
-                                <option value={48}>48 hrs (2 days)</option>
-                                <option value={60}>60 hrs (2.5 days)</option>
-                                <option value={72}>72 hrs (3 days)</option>
-                                <option value={96}>96 hrs (4 days)</option>
-                                <option value={120}>120 hrs (5 days)</option>
-                                <option value={168}>168 hrs (1 week)</option>
-                              </select>
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Current: {formatDeliveryTime(getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours || 36)}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -868,19 +864,19 @@ export const ServicesPage: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Rush Order Delivery Time *
                         </label>
-                        <select
+                        <input
+                          type="number"
+                          min="1"
+                          max="168"
                           value={editingPricing.rushOrderDeliveryTimeHours}
-                          onChange={(e) => setEditingPricing(prev => prev ? { ...prev, rushOrderDeliveryTimeHours: parseInt(e.target.value) } : null)}
+                          onChange={(e) => setEditingPricing(prev => prev ? { ...prev, rushOrderDeliveryTimeHours: parseInt(e.target.value) || 24 } : null)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                          placeholder="24"
                           required
-                        >
-                          <option value={6}>6 hrs</option>
-                          <option value={12}>12 hrs</option>
-                          <option value={24}>24 hrs (1 day)</option>
-                          <option value={36}>36 hrs (1.5 days)</option>
-                          <option value={48}>48 hrs (2 days)</option>
-                        </select>
-                        <p className="text-xs text-gray-500 mt-1">Faster delivery time for rush orders</p>
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Faster delivery time for rush orders - Current: {formatDeliveryTime(editingPricing.rushOrderDeliveryTimeHours)}
+                        </p>
                       </div>
                     </div>
                     
