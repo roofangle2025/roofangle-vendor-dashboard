@@ -488,7 +488,6 @@ export const ServicesPage: React.FC = () => {
           )}
         </div>
       </div>
-      </div>
 
       {/* Business Group Pricing Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
