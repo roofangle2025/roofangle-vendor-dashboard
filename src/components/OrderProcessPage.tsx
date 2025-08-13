@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, ChevronDown, X, Clock, CheckCircle, AlertCircle, Package, Eye, Users, FileText, Calendar, ArrowRight, RotateCcw, XCircle, MapPin, Hash, Home, FileCheck, UserPlus } from 'lucide-react';
+import { Search, Filter, ChevronDown, X, Eye, UserPlus, CheckCircle, RotateCcw, Clock, Package, AlertCircle, Calendar, MapPin, Building2, Timer } from 'lucide-react';
 import { mockOrders } from '../data/mockData';
 import { Order } from '../types';
 
@@ -21,6 +21,7 @@ interface OrderProcessPageProps {
 
 export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
