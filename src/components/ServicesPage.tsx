@@ -244,7 +244,9 @@ export const ServicesPage: React.FC = () => {
           ...bg.servicePrices,
           [service.id]: {
             commercialPrice: service.commercialPrice,
-            residentialPrice: service.residentialPrice
+            residentialPrice: service.residentialPrice,
+            commercialDeliveryTimeHours: service.deliveryTimeHours,
+            residentialDeliveryTimeHours: service.deliveryTimeHours
           }
         },
         modifiedAt: new Date()
@@ -529,19 +531,14 @@ export const ServicesPage: React.FC = () => {
                     const pricing = getServicePricing(bgPricing, service.id);
                     
                     return (
-                     <div key={service.id} className={`rounded-lg p-3 border ${colorClass}`}>
+                      <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
                         <div className="text-sm font-medium mb-1">{service.name}</div>
-                       <div className="grid grid-cols-2 gap-2 text-xs">
-                         <div className="text-center">
-                           <div className="font-medium">Commercial</div>
-                           <div className="font-bold">{formatCurrency(pricing.commercialPrice)}</div>
-                           <div className="text-xs opacity-75">{formatDeliveryTime(pricing.commercialDeliveryTimeHours)}</div>
-                         </div>
-                         <div className="text-center">
-                           <div className="font-medium">Residential</div>
-                           <div className="font-bold">{formatCurrency(pricing.residentialPrice)}</div>
-                           <div className="text-xs opacity-75">{formatDeliveryTime(pricing.residentialDeliveryTimeHours)}</div>
-                         </div>
+                        <div className="text-xs space-y-1">
+                          <div>C: {formatCurrency(pricing.commercialPrice)}</div>
+                          <div>R: {formatCurrency(pricing.residentialPrice)}</div>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {formatDeliveryTime(service.deliveryTimeHours)}
                         </div>
                       </div>
                     );
