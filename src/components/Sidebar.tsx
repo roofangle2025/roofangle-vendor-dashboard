@@ -66,15 +66,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigate, onClose })
           </li>
           <li>
             <button 
-              onClick={() => onNavigate('vendor-platform')}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
-            >
-              <Building className="w-5 h-5 flex-shrink-0" />
-              <span className="truncate font-medium">Vendor Platform</span>
-            </button>
-          </li>
-          <li>
-            <button 
               onClick={() => onNavigate('runtime-management')}
               className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
             >

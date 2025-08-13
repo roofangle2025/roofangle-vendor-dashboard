@@ -17,7 +17,7 @@ export const useNavigation = () => {
     const isAccessPage = ['users', 'business-groups', 'group-details', 'ra-role', 'ra-audit-logs'].includes(page);
     const isReportsPage = ['reports-management', 'quality-analytics', 'vendor-report'].includes(page);
     const isFinancialPage = ['payments', 'vendor-payments'].includes(page);
-    const isVendorPlatformPage = ['vendor-platform', 'services', 'properties'].includes(page);
+    const isRuntimePage = ['runtime-management', 'services', 'properties'].includes(page);
     
     setNavigationState(prev => ({
       ...prev,
@@ -29,7 +29,8 @@ export const useNavigation = () => {
       showMenuSidebar: false,
       showReportsSidebar: isReportsPage,
       showFinancialSidebar: isFinancialPage,
-      showVendorPlatformSidebar: isVendorPlatformPage
+      showRuntimeSidebar: isRuntimePage,
+      showVendorPlatformSidebar: false
     }));
   };
 

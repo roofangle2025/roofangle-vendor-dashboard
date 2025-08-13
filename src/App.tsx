@@ -5,7 +5,7 @@ import { AccessSidebar } from './components/AccessSidebar';
 import { OrderSidebar } from './components/OrderSidebar';
 import { ReportsSidebar } from './components/ReportsSidebar';
 import { FinancialSidebar } from './components/FinancialSidebar';
-import { VendorPlatformSidebar } from './components/VendorPlatformSidebar';
+import { RuntimeSidebar } from './components/RuntimeSidebar';
 import { UsersPage } from './components/UsersPage';
 import { BusinessGroupsPage } from './components/BusinessGroupsPage';
 import { GroupDetailsPage } from './components/GroupDetailsPage';
@@ -93,8 +93,6 @@ function App() {
         return <VendorPaymentsPage />;
       case 'runtime-management':
         return <RuntimeManagementPage />;
-      case 'vendor-platform':
-        return <VendorPlatformPage onNavigate={navigateToPage} />;
       case 'services':
         return <ServicesPage />;
       case 'properties':
@@ -150,8 +148,8 @@ function App() {
           sidebarOffset={getSidebarOffset()}
         />
         
-        <VendorPlatformSidebar 
-          isVisible={navigationState.showVendorPlatformSidebar}
+        <RuntimeSidebar 
+          isVisible={navigationState.showRuntimeSidebar}
           currentPage={navigationState.currentPage}
           onNavigate={navigateToPage}
           sidebarOffset={getSidebarOffset()}
@@ -160,7 +158,7 @@ function App() {
         <main 
           className={`flex-1 p-3 sm:p-4 lg:p-6 transition-all duration-300 ease-in-out ${
             navigationState.showMenuSidebar ? 'lg:ml-64' : ''
-          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar || navigationState.showFinancialSidebar || navigationState.showVendorPlatformSidebar) ? 'lg:ml-64' : ''}`}
+          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar || navigationState.showFinancialSidebar || navigationState.showRuntimeSidebar) ? 'lg:ml-64' : ''}`}
         >
           {renderCurrentPage()}
         </main>
