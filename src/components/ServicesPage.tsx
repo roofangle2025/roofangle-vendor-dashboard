@@ -531,8 +531,8 @@ export const ServicesPage: React.FC = () => {
                         <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
                           <div className="text-sm font-medium mb-1">{service.name}</div>
                           <div className="text-xs space-y-1">
-                            <div>C: {formatCurrency(pricing.commercialPrice)} | {formatDeliveryTime(pricing.commercialDeliveryTimeHours)}</div>
-                            <div>R: {formatCurrency(pricing.residentialPrice)} | {formatDeliveryTime(pricing.residentialDeliveryTimeHours)}</div>
+                            <div>C: {formatCurrency(pricing.commercialPrice)} | {formatDeliveryTime(pricing.commercialDeliveryTimeHours || service.deliveryTimeHours)}</div>
+                            <div>R: {formatCurrency(pricing.residentialPrice)} | {formatDeliveryTime(pricing.residentialDeliveryTimeHours || service.deliveryTimeHours)}</div>
                           </div>
                         </div>
                       );
@@ -760,14 +760,14 @@ export const ServicesPage: React.FC = () => {
                                   type="number"
                                   min="1"
                                   max="720"
-                                  value={getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours || 48}
+                                  value={getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours || service.deliveryTimeHours || 48}
                                   onChange={(e) => updateServiceDeliveryTime(service.id, 'commercial', parseInt(e.target.value) || 48)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                                   placeholder="48"
                                   required
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Current: {formatDeliveryTime(getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours || 48)}
+                                  Current: {formatDeliveryTime(getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours || service.deliveryTimeHours || 48)}
                                 </p>
                               </div>
                               
@@ -779,14 +779,14 @@ export const ServicesPage: React.FC = () => {
                                   type="number"
                                   min="1"
                                   max="720"
-                                  value={getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours || 36}
+                                  value={getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours || service.deliveryTimeHours || 36}
                                   onChange={(e) => updateServiceDeliveryTime(service.id, 'residential', parseInt(e.target.value) || 36)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                                   placeholder="36"
                                   required
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Current: {formatDeliveryTime(getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours || 36)}
+                                  Current: {formatDeliveryTime(getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours || service.deliveryTimeHours || 36)}
                                 </p>
                               </div>
                             </div>
@@ -849,9 +849,8 @@ export const ServicesPage: React.FC = () => {
                             Faster delivery time for rush orders - Current: {formatDeliveryTime(editingPricing.rushOrderDeliveryTimeHours)}
                           </p>
                         </div>
-                      </div>
                       
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className="mt-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             PDF Required Price *
