@@ -90,7 +90,7 @@ export const ServicesPage: React.FC = () => {
   
   const [newCustomerPricing, setNewCustomerPricing] = useState({
     customerName: '',
-    serviceType: 'ESX Report' as CustomerSpecificPricing['serviceType'],
+    serviceType: services.length > 0 ? services[0].name as CustomerSpecificPricing['serviceType'] : 'ESX Report' as CustomerSpecificPricing['serviceType'],
     price: ''
   });
 
@@ -234,7 +234,7 @@ export const ServicesPage: React.FC = () => {
     setSelectedBusinessGroup(businessGroup);
     setNewCustomerPricing({
       customerName: '',
-      serviceType: 'ESX Report',
+      serviceType: filteredAndSortedServices.length > 0 ? filteredAndSortedServices[0].name as CustomerSpecificPricing['serviceType'] : 'ESX Report',
       price: ''
     });
     setShowCustomerPricingModal(true);
@@ -443,26 +443,47 @@ export const ServicesPage: React.FC = () => {
 
               {/* Pricing Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                  <div className="text-sm font-medium text-blue-800 mb-1">ESX Report</div>
-                  <div className="text-lg font-bold text-blue-900">{formatCurrency(bgPricing.esxPrice)}</div>
-                </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                  <div className="text-sm font-medium text-green-800 mb-1">Wall Report</div>
-                  <div className="text-lg font-bold text-green-900">{formatCurrency(bgPricing.wallReportPrice)}</div>
-                </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center">
-                  <div className="text-sm font-medium text-purple-800 mb-1">DAD Report</div>
-                  <div className="text-lg font-bold text-purple-900">{formatCurrency(bgPricing.dadReportPrice)}</div>
-                </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                  <div className="text-sm font-medium text-red-800 mb-1">Rush Order</div>
-                  <div className="text-lg font-bold text-red-900">{formatCurrency(bgPricing.rushOrderPrice)}</div>
-                </div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                  <div className="text-sm font-medium text-yellow-800 mb-1">PDF</div>
-                  <div className="text-lg font-bold text-yellow-900">{formatCurrency(bgPricing.pdfPrice)}</div>
-                </div>
+                {/* Display all active services */}
+                {filteredAndSortedServices.filter(service => service.isActive).map((service, index) => {
+                  const colors = [
+                    'bg-blue-50 border-blue-200 text-blue-800',
+                    'bg-green-50 border-green-200 text-green-800', 
+                    'bg-purple-50 border-purple-200 text-purple-800',
+                    'bg-red-50 border-red-200 text-red-800',
+                    'bg-yellow-50 border-yellow-200 text-yellow-800',
+                    'bg-indigo-50 border-indigo-200 text-indigo-800',
+                    'bg-pink-50 border-pink-200 text-pink-800'
+                  ];
+                  const colorClass = colors[index % colors.length];
+                  
+                  // Get price for this service from business group pricing
+                  const getServicePrice = (serviceName: string) => {
+                    switch (serviceName) {
+                      case 'ESX Report': return bgPricing.esxPrice;
+                      case 'Wall Report': return bgPricing.wallReportPrice;
+                      case 'DAD Report': return bgPricing.dadReportPrice;
+                      case 'Rush Order': return bgPricing.rushOrderPrice;
+                      case 'PDF': return bgPricing.pdfPrice;
+                      default: return 0; // For newly added services, default to 0
+                    }
+                  };
+                  
+                  return (
+                    <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
+                      <div className="text-sm font-medium mb-1">{service.name}</div>
+                      <div className="text-lg font-bold">{formatCurrency(getServicePrice(service.name))}</div>
+                    </div>
+                  );
+                })}
+                
+                {/* Show message if no active services */}
+                {filteredAndSortedServices.filter(service => service.isActive).length === 0 && (
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm">No active services available</p>
+                    <p className="text-xs">Add services above to see pricing options</p>
+                  </div>
+                )}
               </div>
 
               {/* Customer-Specific Pricing Summary */}
@@ -607,101 +628,63 @@ export const ServicesPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ESX Report Price *
+                      {editingPricing.businessGroupName} - Service Pricing *
                     </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editingPricing.esxPrice}
-                        onChange={(e) => setEditingPricing(prev => prev ? { ...prev, esxPrice: parseFloat(e.target.value) || 0 } : null)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Wall Report Price *
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editingPricing.wallReportPrice}
-                        onChange={(e) => setEditingPricing(prev => prev ? { ...prev, wallReportPrice: parseFloat(e.target.value) || 0 } : null)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      DAD Report Price *
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editingPricing.dadReportPrice}
-                        onChange={(e) => setEditingPricing(prev => prev ? { ...prev, dadReportPrice: parseFloat(e.target.value) || 0 } : null)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rush Order Price *
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editingPricing.rushOrderPrice}
-                        onChange={(e) => setEditingPricing(prev => prev ? { ...prev, rushOrderPrice: parseFloat(e.target.value) || 0 } : null)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      PDF Price *
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editingPricing.pdfPrice}
-                        onChange={(e) => setEditingPricing(prev => prev ? { ...prev, pdfPrice: parseFloat(e.target.value) || 0 } : null)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        required
-                      />
+                    <div className="space-y-4">
+                      {/* Dynamic pricing inputs for all active services */}
+                      {filteredAndSortedServices.filter(service => service.isActive).map((service) => (
+                        <div key={service.id}>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {service.name} Price *
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <DollarSign className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={(() => {
+                                // Get the current price for this service
+                                switch (service.name) {
+                                  case 'ESX Report': return editingPricing?.esxPrice || 0;
+                                  case 'Wall Report': return editingPricing?.wallReportPrice || 0;
+                                  case 'DAD Report': return editingPricing?.dadReportPrice || 0;
+                                  case 'Rush Order': return editingPricing?.rushOrderPrice || 0;
+                                  case 'PDF': return editingPricing?.pdfPrice || 0;
+                                  default: return 0;
+                                }
+                              })()}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                setEditingPricing(prev => {
+                                  if (!prev) return null;
+                                  switch (service.name) {
+                                    case 'ESX Report': return { ...prev, esxPrice: value };
+                                    case 'Wall Report': return { ...prev, wallReportPrice: value };
+                                    case 'DAD Report': return { ...prev, dadReportPrice: value };
+                                    case 'Rush Order': return { ...prev, rushOrderPrice: value };
+                                    case 'PDF': return { ...prev, pdfPrice: value };
+                                    default: return prev;
+                                  }
+                                });
+                              }}
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                              required
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                        </div>
+                      ))}
+                      
+                      {filteredAndSortedServices.filter(service => service.isActive).length === 0 && (
+                        <div className="text-center py-6 text-gray-500">
+                          <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm">No active services available</p>
+                          <p className="text-xs">Add services above to configure pricing</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -769,11 +752,9 @@ export const ServicesPage: React.FC = () => {
                         onChange={(e) => setNewCustomerPricing(prev => ({ ...prev, serviceType: e.target.value as CustomerSpecificPricing['serviceType'] }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                       >
-                        <option value="ESX Report">ESX Report</option>
-                        <option value="Wall Report">Wall Report</option>
-                        <option value="DAD Report">DAD Report</option>
-                        <option value="Rush Order">Rush Order</option>
-                        <option value="PDF">PDF</option>
+                        {filteredAndSortedServices.filter(service => service.isActive).map(service => (
+                          <option key={service.id} value={service.name}>{service.name}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex space-x-2">
