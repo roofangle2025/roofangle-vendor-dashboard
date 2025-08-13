@@ -541,11 +541,18 @@ export const ServicesPage: React.FC = () => {
                       'bg-pink-50 border-pink-200 text-pink-800'
                     ];
                     const colorClass = colors[index % colors.length];
+                    const pricing = getServicePricing(bgPricing, service.id);
                     
                     return (
                       <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
                         <div className="text-sm font-medium mb-1">{service.name}</div>
-                        <div className="text-lg font-bold">{formatCurrency(getServicePrice(bgPricing, service.id))}</div>
+                        <div className="text-xs space-y-1">
+                          <div>C: {formatCurrency(pricing.commercialPrice)}</div>
+                          <div>R: {formatCurrency(pricing.residentialPrice)}</div>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {formatDeliveryTime(service.deliveryTimeHours)}
+                        </div>
                       </div>
                     );
                   })}
@@ -623,7 +630,7 @@ export const ServicesPage: React.FC = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Base Price *
+                      Commercial Price *
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -633,14 +640,55 @@ export const ServicesPage: React.FC = () => {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={newService.basePrice}
-                        onChange={(e) => setNewService(prev => ({ ...prev, basePrice: parseFloat(e.target.value) || 0 }))}
+                        value={newService.commercialPrice}
+                        onChange={(e) => setNewService(prev => ({ ...prev, commercialPrice: parseFloat(e.target.value) || 0 }))}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                         placeholder="0.00"
                         required
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">This will be the default price for all business groups</p>
+                    <p className="text-xs text-gray-500 mt-1">Price for commercial properties</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Residential Price *
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <DollarSign className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newService.residentialPrice}
+                        onChange={(e) => setNewService(prev => ({ ...prev, residentialPrice: parseFloat(e.target.value) || 0 }))}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Price for residential properties</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Delivery Time (Hours) *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="720"
+                      value={newService.deliveryTimeHours}
+                      onChange={(e) => setNewService(prev => ({ ...prev, deliveryTimeHours: parseInt(e.target.value) || 48 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      placeholder="48"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Estimated delivery time: {formatDeliveryTime(newService.deliveryTimeHours)}
+                    </p>
                   </div>
                   
                   <div className="flex items-center">
@@ -660,9 +708,9 @@ export const ServicesPage: React.FC = () => {
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
                   onClick={handleAddService}
-                  disabled={!newService.name.trim() || !newService.description.trim()}
+                  disabled={!newService.name.trim() || !newService.description.trim() || newService.commercialPrice <= 0 || newService.residentialPrice <= 0}
                   className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
-                    newService.name.trim() && newService.description.trim()
+                    newService.name.trim() && newService.description.trim() && newService.commercialPrice > 0 && newService.residentialPrice > 0
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
                   }`}
@@ -712,28 +760,61 @@ export const ServicesPage: React.FC = () => {
                       <Wrench className="w-4 h-4 text-blue-600 mr-2" />
                       Service Pricing
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-4">
                       {services.filter(service => service.isActive).map((service) => (
-                        <div key={service.id}>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {service.name} Price *
-                          </label>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <DollarSign className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={getServicePrice(editingPricing, service.id)}
-                              onChange={(e) => updateServicePrice(service.id, parseFloat(e.target.value) || 0)}
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                              placeholder="0.00"
-                              required
-                            />
+                        <div key={service.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Wrench className="w-4 h-4 text-blue-600" />
+                            <h5 className="text-sm font-medium text-gray-900">{service.name}</h5>
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                              {formatDeliveryTime(service.deliveryTimeHours)}
+                            </span>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                          <p className="text-xs text-gray-500 mb-3">{service.description}</p>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Commercial Price *
+                              </label>
+                              <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                  <DollarSign className="h-3 w-3 text-gray-400" />
+                                </div>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={getServicePricing(editingPricing, service.id).commercialPrice}
+                                  onChange={(e) => updateServicePricing(service.id, 'commercial', parseFloat(e.target.value) || 0)}
+                                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                  placeholder="0.00"
+                                  required
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Residential Price *
+                              </label>
+                              <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                  <DollarSign className="h-3 w-3 text-gray-400" />
+                                </div>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={getServicePricing(editingPricing, service.id).residentialPrice}
+                                  onChange={(e) => updateServicePricing(service.id, 'residential', parseFloat(e.target.value) || 0)}
+                                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                  placeholder="0.00"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ))}
                       
@@ -793,9 +874,6 @@ export const ServicesPage: React.FC = () => {
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                             placeholder="0.00"
                             required
-                          />
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Additional charge for PDF delivery</p>
                       </div>
                     </div>
                   </div>
@@ -804,17 +882,13 @@ export const ServicesPage: React.FC = () => {
               
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
-                  onClick={handleSavePricing}
-                  className="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm transition-colors duration-200"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Pricing
-                </button>
-                <button
-                  onClick={() => setShowPricingModal(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
-                >
-                  Cancel
+                  {/* Service Info Display */}
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-900 mb-1">{service.name}</div>
+                    <div className="text-sm text-blue-600 font-medium">
+                      Delivery: {formatDeliveryTime(service.deliveryTimeHours)}
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
