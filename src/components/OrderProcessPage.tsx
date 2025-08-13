@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, ChevronDown, X, Eye, UserPlus, CheckCircle, RotateCcw, Clock, Package, AlertCircle, Calendar, MapPin, Building2, Timer } from 'lucide-react';
+import { Search, Filter, ChevronDown, X, Eye, UserPlus, CheckCircle, RotateCcw, Clock, Package, AlertCircle, Calendar, MapPin, Building2, Timer, FileText, ArrowRight, XCircle, FileCheck, Home, Hash } from 'lucide-react';
 import { mockOrders } from '../data/mockData';
 import { Order } from '../types';
 
@@ -157,6 +157,33 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
   const formatDueTime = (date?: Date) => {
     if (!date) return 'Not set';
     return formatDate(date) + ' ' + formatTime(date);
+  };
+
+  const formatCountdown = (date?: Date) => {
+    if (!date) return { display: 'Not set', isOverdue: false };
+    
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    const isOverdue = diff < 0;
+    const absDiff = Math.abs(diff);
+    
+    const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((absDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((absDiff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    let display = '';
+    if (days > 0) {
+      display = `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      display = `${hours}h ${minutes}m`;
+    } else {
+      display = `${minutes}m`;
+    }
+    
+    return {
+      display: isOverdue ? `${display} overdue` : display,
+      isOverdue
+    };
   };
 
   const getItemNumber = (order: Order) => {
@@ -791,7 +818,20 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {formatDueTime(order.deliveryDate)}
+                            <div className="flex flex-col">
+                              <span>{formatDate(order.deliveryDate)}</span>
+                              {(() => {
+                                const countdown = formatCountdown(order.deliveryDate);
+                                return (
+                                  <span className={`text-xs font-mono font-bold flex items-center mt-1 ${
+                                    countdown.isOverdue ? 'text-red-600' : 'text-green-600'
+                                  }`}>
+                                    <Timer className="w-3 h-3 mr-1" />
+                                    {countdown.display}
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
@@ -858,16 +898,6 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                               >
                                 <CheckCircle className="w-3 h-3 mr-1" />
                                 Move to QA
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRollback(order.id);
-                                }}
-                                className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors duration-200 text-xs font-medium"
-                              >
-                                <RotateCcw className="w-3 h-3 mr-1" />
-                                Rollback
                               </button>
                               <button
                                 onClick={(e) => {
