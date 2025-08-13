@@ -862,6 +862,16 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  handleRollback(order.id);
+                                }}
+                                className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors duration-200 text-xs font-medium"
+                              >
+                                <RotateCcw className="w-3 h-3 mr-1" />
+                                Rollback
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleRollback(order);
                                 }}
                                 className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors duration-200 text-xs font-medium"
