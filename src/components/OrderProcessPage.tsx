@@ -27,6 +27,13 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
   const [bulkAssignData, setBulkAssignData] = useState({
     sketchPersonId: '',
   });
+  const [showManagerModal, setShowManagerModal] = useState(false);
+  const [managerAction, setManagerAction] = useState<'qa' | 'rollback'>('qa');
+  const [selectedOrderForManager, setSelectedOrderForManager] = useState<Order | null>(null);
+  const [managerData, setManagerData] = useState({
+    managerId: '',
+    comment: ''
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<SortField>('deliveryDate');
@@ -43,6 +50,10 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
   const sketchUsers = [
     { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane.smith@example.com' },
     { id: '4', firstName: 'Sarah', lastName: 'Wilson', email: 'sarah.wilson@example.com' }
+  ];
+  const managerUsers = [
+    { id: '1', firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com' },
+    { id: '5', firstName: 'David', lastName: 'Brown', email: 'david.brown@example.com' }
   ];
   const qaUsers = [
     { id: '3', firstName: 'Mike', lastName: 'Johnson', email: 'mike.johnson@example.com' },
@@ -303,6 +314,49 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
         setSelectedOrders([]);
         
         alert(`${selectedOrders.length} orders assigned successfully to ${sketchUser.firstName} ${sketchUser.lastName} for sketch work!`);
+      }
+    }
+  };
+
+  const handleMoveToQA = (order: Order) => {
+    setSelectedOrderForManager(order);
+    setManagerAction('qa');
+    setManagerData({ managerId: '', comment: '' });
+    setShowManagerModal(true);
+  };
+
+  const handleRollback = (order: Order) => {
+    setSelectedOrderForManager(order);
+    setManagerAction('rollback');
+    setManagerData({ managerId: '', comment: '' });
+    setShowManagerModal(true);
+  };
+
+  const handleManagerActionSubmit = () => {
+    if (managerData.managerId && managerData.comment.trim() && selectedOrderForManager) {
+      const manager = managerUsers.find(u => u.id === managerData.managerId);
+      
+      if (manager) {
+        const newStatus = managerAction === 'qa' ? 'qa-review' : 'rollback';
+        const newProcessStatus = managerAction === 'qa' ? 'qa' : 'rollback';
+        
+        // Update the order
+        setOrders(prev => prev.map(order => 
+          order.id === selectedOrderForManager.id 
+            ? {
+                ...order,
+                status: newStatus as const,
+                processStatus: newProcessStatus as any
+              }
+            : order
+        ));
+        
+        setShowManagerModal(false);
+        setSelectedOrderForManager(null);
+        setManagerData({ managerId: '', comment: '' });
+        
+        const actionText = managerAction === 'qa' ? 'moved to QA Review' : 'rolled back';
+        alert(`Order ${selectedOrderForManager.orderNumber} has been ${actionText} by ${manager.firstName} ${manager.lastName}!`);
       }
     }
   };
@@ -579,6 +633,30 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                           <span className="text-xs">{order.propertyType || 'N/A'}</span>
                         </div>
                       </div>
+                      {order.status === 'in-progress' && (
+                        <div className="flex items-center space-x-1 mt-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveToQA(order);
+                            }}
+                            className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors duration-200 text-xs font-medium"
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Move to QA
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRollback(order);
+                            }}
+                            className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors duration-200 text-xs font-medium"
+                          >
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                            Rollback
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -768,6 +846,30 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                             <Eye className="w-3 h-3 mr-1" />
                             View
                           </button>
+                          {order.status === 'in-progress' && (
+                            <div className="flex items-center space-x-1 mt-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveToQA(order);
+                                }}
+                                className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors duration-200 text-xs font-medium"
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Move to QA
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRollback(order);
+                                }}
+                                className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors duration-200 text-xs font-medium"
+                              >
+                                <RotateCcw className="w-3 h-3 mr-1" />
+                                Rollback
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -843,6 +945,154 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                 </button>
                 <button
                   onClick={() => setShowBulkAssignModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manager Action Modal */}
+      {showManagerModal && selectedOrderForManager && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowManagerModal(false)} />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full mx-4">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    {managerAction === 'qa' ? (
+                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2" />
+                    ) : (
+                      <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 mr-2" />
+                    )}
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {managerAction === 'qa' ? 'Move to QA Review' : 'Rollback Order'}
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setShowManagerModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
+                  >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+                
+                {/* Order Details */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Order Details</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Order Number:</span>
+                      <span className="font-medium text-gray-900">{selectedOrderForManager.orderNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Customer:</span>
+                      <span className="font-medium text-gray-900">{selectedOrderForManager.customerName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Business Group:</span>
+                      <span className="font-medium text-gray-900">{selectedOrderForManager.businessGroup}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Current Status:</span>
+                      <span className="font-medium text-gray-900">In Progress</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Manager *
+                    </label>
+                    <select
+                      value={managerData.managerId}
+                      onChange={(e) => setManagerData(prev => ({ ...prev, managerId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      required
+                    >
+                      <option value="">Select manager...</option>
+                      {managerUsers.map(manager => (
+                        <option key={manager.id} value={manager.id}>
+                          {manager.firstName} {manager.lastName} ({manager.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Comment *
+                    </label>
+                    <textarea
+                      value={managerData.comment}
+                      onChange={(e) => setManagerData(prev => ({ ...prev, comment: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      placeholder={`Add a comment about ${managerAction === 'qa' ? 'moving to QA review' : 'rolling back the order'}...`}
+                      rows={4}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Action Description */}
+                  <div className={`p-3 rounded-lg border ${
+                    managerAction === 'qa' 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-orange-50 border-orange-200'
+                  }`}>
+                    <div className="flex items-start">
+                      {managerAction === 'qa' ? (
+                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <RotateCcw className="w-5 h-5 text-orange-600 mr-2 flex-shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-800">
+                          {managerAction === 'qa' ? 'Move to QA Review' : 'Rollback Order'}
+                        </h4>
+                        <p className="text-sm text-gray-700 mt-1">
+                          {managerAction === 'qa' 
+                            ? 'This will move the order to QA review stage for quality assurance.'
+                            : 'This will rollback the order for corrections or additional work.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <button
+                  onClick={handleManagerActionSubmit}
+                  disabled={!managerData.managerId || !managerData.comment.trim()}
+                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
+                    managerData.managerId && managerData.comment.trim()
+                      ? managerAction === 'qa'
+                        ? 'bg-green-600 hover:bg-green-700'
+                        : 'bg-orange-600 hover:bg-orange-700'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {managerAction === 'qa' ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Move to QA
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Rollback Order
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowManagerModal(false)}
                   className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
                 >
                   Cancel
