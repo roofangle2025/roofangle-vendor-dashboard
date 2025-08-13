@@ -3,7 +3,7 @@ import { NavigationState } from '../types';
 
 export const useNavigation = () => {
   const [navigationState, setNavigationState] = useState<NavigationState>({
-    currentPage: 'order-dashboard',
+    currentPage: 'services',
     showAccessSidebar: false,
     showMenuSidebar: false,
     showOrderSidebar: true,
