@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Search, Filter, ChevronDown, X, Eye, UserPlus, CheckCircle, RotateCcw, Clock, Package, AlertCircle, Calendar, MapPin, Building2, Timer, FileText, ArrowRight, XCircle, FileCheck, Home, Hash } from 'lucide-react';
 import { mockOrders } from '../data/mockData';
 import { Order } from '../types';
@@ -21,6 +22,7 @@ interface OrderProcessPageProps {
 
 export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
@@ -46,6 +48,15 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
     propertyType: 'all',
     reportType: 'all'
   });
+
+  // Update current time every second for countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Get available users for assignment
   const sketchUsers = [
