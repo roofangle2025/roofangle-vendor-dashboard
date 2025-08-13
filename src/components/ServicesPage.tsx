@@ -206,6 +206,30 @@ export const ServicesPage: React.FC = () => {
     });
   };
 
+  const updateServiceDeliveryTime = (serviceId: string, type: 'commercial' | 'residential', hours: number) => {
+    if (!editingPricing) return;
+    
+    setEditingPricing(prev => {
+      if (!prev) return null;
+      const currentPricing = prev.servicePrices[serviceId] || { 
+        commercialPrice: 0, 
+        residentialPrice: 0,
+        commercialDeliveryTimeHours: 48,
+        residentialDeliveryTimeHours: 48
+      };
+      return {
+        ...prev,
+        servicePrices: {
+          ...prev.servicePrices,
+          [serviceId]: {
+            ...currentPricing,
+            [type === 'commercial' ? 'commercialDeliveryTimeHours' : 'residentialDeliveryTimeHours']: hours
+          }
+        }
+      };
+    });
+  };
+
   const formatDeliveryTime = (hours: number): string => {
     if (hours < 24) {
       return `${hours} hrs`;
@@ -437,16 +461,15 @@ export const ServicesPage: React.FC = () => {
               <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-3">{service.description}</p>
                 
-                {/* Pricing Display */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-blue-50 p-2 rounded border border-blue-200">
-                    <div className="font-medium text-blue-800">Commercial</div>
-                    <div className="text-sm font-bold text-blue-900">{formatCurrency(service.commercialPrice)}</div>
-                  </div>
-                  <div className="bg-green-50 p-2 rounded border border-green-200">
-                    <div className="font-medium text-green-800">Residential</div>
-                    <div className="text-sm font-bold text-green-900">{formatCurrency(service.residentialPrice)}</div>
-                  </div>
+                {/* Status Display */}
+                <div className="text-center">
+                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                    service.isActive 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {service.isActive ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
               </div>
               
@@ -534,11 +557,8 @@ export const ServicesPage: React.FC = () => {
                       <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
                         <div className="text-sm font-medium mb-1">{service.name}</div>
                         <div className="text-xs space-y-1">
-                          <div>C: {formatCurrency(pricing.commercialPrice)}</div>
-                          <div>R: {formatCurrency(pricing.residentialPrice)}</div>
-                        </div>
-                        <div className="text-xs text-gray-600 mt-1">
-                          {formatDeliveryTime(service.deliveryTimeHours)}
+                          <div>C: {formatCurrency(pricing.commercialPrice)} | {formatDeliveryTime(pricing.commercialDeliveryTimeHours)}</div>
+                          <div>R: {formatCurrency(pricing.residentialPrice)} | {formatDeliveryTime(pricing.residentialDeliveryTimeHours)}</div>
                         </div>
                       </div>
                     );
@@ -762,44 +782,44 @@ export const ServicesPage: React.FC = () => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Commercial Price *
+                                Commercial Delivery Time *
                               </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                  <DollarSign className="h-3 w-3 text-gray-400" />
-                                </div>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  value={getServicePricing(editingPricing, service.id).commercialPrice}
-                                  onChange={(e) => updateServicePricing(service.id, 'commercial', parseFloat(e.target.value) || 0)}
-                                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                                  placeholder="0.00"
-                                  required
-                                />
-                              </div>
+                              <select
+                                value={getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours}
+                                onChange={(e) => updateServiceDeliveryTime(service.id, 'commercial', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                required
+                              >
+                                <option value={24}>24 hrs (1 day)</option>
+                                <option value={36}>36 hrs (1.5 days)</option>
+                                <option value={48}>48 hrs (2 days)</option>
+                                <option value={60}>60 hrs (2.5 days)</option>
+                                <option value={72}>72 hrs (3 days)</option>
+                                <option value={96}>96 hrs (4 days)</option>
+                                <option value={120}>120 hrs (5 days)</option>
+                                <option value={168}>168 hrs (1 week)</option>
+                              </select>
                             </div>
                             
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Residential Price *
+                                Residential Delivery Time *
                               </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                  <DollarSign className="h-3 w-3 text-gray-400" />
-                                </div>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  value={getServicePricing(editingPricing, service.id).residentialPrice}
-                                  onChange={(e) => updateServicePricing(service.id, 'residential', parseFloat(e.target.value) || 0)}
-                                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                                  placeholder="0.00"
-                                  required
-                                />
-                              </div>
+                              <select
+                                value={getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours}
+                                onChange={(e) => updateServiceDeliveryTime(service.id, 'residential', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                required
+                              >
+                                <option value={24}>24 hrs (1 day)</option>
+                                <option value={36}>36 hrs (1.5 days)</option>
+                                <option value={48}>48 hrs (2 days)</option>
+                                <option value={60}>60 hrs (2.5 days)</option>
+                                <option value={72}>72 hrs (3 days)</option>
+                                <option value={96}>96 hrs (4 days)</option>
+                                <option value={120}>120 hrs (5 days)</option>
+                                <option value={168}>168 hrs (1 week)</option>
+                              </select>
                             </div>
                           </div>
                         </div>
