@@ -884,6 +884,7 @@ export const ServicesPage: React.FC = () => {
                         </div>
                         <p className="text-xs text-gray-500 mt-1">Additional charge for PDF delivery</p>
                       </div>
+                    </div>
                   </div>
                 </div>
               </div>

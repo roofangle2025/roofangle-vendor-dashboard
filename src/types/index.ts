@@ -133,6 +133,8 @@ export interface BusinessGroupPricing {
     [serviceId: string]: {
       commercialPrice: number;
       residentialPrice: number;
+     commercialDeliveryTimeHours: number;
+     residentialDeliveryTimeHours: number;
       deliveryTimeHours: number;
     }
   }; // Dynamic pricing for each service with commercial/residential rates
