@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Package, Calendar, MapPin, User, Building2, Clock, FileText, Shield, AlertCircle, Edit, Save, X, Upload, Download, Trash2, Check, Image, ZoomIn, MessageSquare, Send, Plus, CheckCircle, ArrowRight, PlayCircle, Truck, UserPlus, Star } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, MapPin, User, Building2, Clock, FileText, Shield, AlertCircle, Edit, Save, X, Upload, Download, Trash2, Check, Image, ZoomIn, MessageSquare, Send, Plus, CheckCircle, ArrowRight, PlayCircle, Truck, UserPlus, Star, RotateCcw } from 'lucide-react';
 import { Order } from '../types';
 import { mockOrders, getSketchUsers, getQAUsers } from '../data/mockData';
 import { FileUploadCenter } from './FileUploadCenter';
@@ -244,6 +244,33 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
     setShowReadyModal(true);
   };
 
+  const handleRollback = () => {
+    if (confirm('Are you sure you want to rollback this order? This will move it back for corrections.')) {
+      // Add comment to the communication log
+      const comment: Comment = {
+        id: Date.now().toString(),
+        message: 'Order rolled back for corrections and improvements.',
+        timestamp: new Date(),
+        author: 'Yashwnath K',
+        authorInitials: 'YK',
+        type: 'update'
+      };
+      
+      setComments(prev => [...prev, comment]);
+      
+      // Update order status
+      if (orderData) {
+        setOrderData({
+          ...orderData,
+          status: 'rollback',
+          processStatus: 'rollback' as any
+        });
+      }
+      
+      alert('Order rolled back successfully!');
+    }
+  };
+
   const handleAssignTo = () => {
     setAssignModalData({
       sketchPersonId: '',
@@ -439,11 +466,21 @@ export const OrderDetailsPage: React.FC<OrderDetailsPageProps> = ({ orderId, onB
       case 'in-progress':
         return {
           show: true,
-          showMultiple: false,
-          text: 'Move to QA',
-          icon: CheckCircle,
-          color: 'bg-blue-600 hover:bg-blue-700',
-          action: handleMoveToQA
+          showMultiple: true,
+          buttons: [
+            {
+              text: 'Move to QA',
+              icon: CheckCircle,
+              color: 'bg-blue-600 hover:bg-blue-700',
+              action: handleMoveToQA
+            },
+            {
+              text: 'Rollback',
+              icon: RotateCcw,
+              color: 'bg-orange-600 hover:bg-orange-700',
+              action: handleRollback
+            }
+          ]
         };
       case 'qa-review':
         return {
