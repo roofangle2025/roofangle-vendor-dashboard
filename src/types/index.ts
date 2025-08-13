@@ -137,6 +137,7 @@ export interface BusinessGroupPricing {
     }
   }; // Dynamic pricing for each service with commercial/residential rates
   rushOrderPrice: number;
+  rushOrderDeliveryTimeHours: number;
   pdfPrice: number;
   isActive: boolean;
   createdAt: Date;
