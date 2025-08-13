@@ -18,12 +18,20 @@ interface OrderProcessPageProps {
   onSelectOrder: (orderId: string) => void;
 }
 
+interface BulkAssignData {
+  sketchPersonId: string;
+  comment: string;
+}
 export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
+  const [bulkAssignData, setBulkAssignData] = useState<BulkAssignData>({
+    sketchPersonId: '',
+    comment: ''
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<SortField>('dueTime');
@@ -229,9 +237,43 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
 
   const handleBulkAssign = () => {
     if (selectedOrders.length > 0) {
+      setBulkAssignData({
+        sketchPersonId: '',
+        comment: ''
+      });
       setShowBulkAssignModal(true);
     }
   };
+
+  const handleBulkAssignSubmit = () => {
+    if (bulkAssignData.sketchPersonId && selectedOrders.length > 0) {
+      const sketchUser = getSketchUsers().find(u => u.id === bulkAssignData.sketchPersonId);
+      
+      if (sketchUser) {
+        // Update all selected orders
+        setOrders(prev => prev.map(order => 
+          selectedOrders.includes(order.id) 
+            ? {
+                ...order,
+                status: 'in-progress',
+                processStatus: 'sketch' as any,
+                sketchPersonId: bulkAssignData.sketchPersonId,
+                assignedTo: `${sketchUser.firstName} ${sketchUser.lastName}`
+              }
+            : order
+        ));
+        
+        setShowBulkAssignModal(false);
+        setSelectedOrders([]);
+        setBulkAssignData({ sketchPersonId: '', comment: '' });
+        
+        alert(`${selectedOrders.length} orders assigned to ${sketchUser.firstName} ${sketchUser.lastName} successfully!`);
+      }
+    }
+  };
+
+  // Get available users for assignment
+  const sketchUsers = getSketchUsers();
 
   const tabs: { id: TabType; label: string; count: number }[] = [
     { id: 'new', label: 'New Orders', count: getTabOrders('new').length },
@@ -579,6 +621,93 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
           </div>
         </div>
       </div>
+
+      {/* Bulk Assign Modal */}
+      {showBulkAssignModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowBulkAssignModal(false)} />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full mx-4">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mr-2" />
+                    <h3 className="text-lg font-medium text-gray-900">Bulk Assign Orders</h3>
+                  </div>
+                  <button 
+                    onClick={() => setShowBulkAssignModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
+                  >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+                
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    You are about to assign <span className="font-bold">{selectedOrders.length}</span> selected orders to a sketch person.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assign to Sketch Person *
+                    </label>
+                    <select
+                      value={bulkAssignData.sketchPersonId}
+                      onChange={(e) => setBulkAssignData(prev => ({ ...prev, sketchPersonId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      required
+                    >
+                      <option value="">Select sketch person...</option>
+                      {sketchUsers.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assignment Comment
+                    </label>
+                    <textarea
+                      value={bulkAssignData.comment}
+                      onChange={(e) => setBulkAssignData(prev => ({ ...prev, comment: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                      placeholder="Add a comment about this bulk assignment (optional)..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <button
+                  onClick={handleBulkAssignSubmit}
+                  disabled={!bulkAssignData.sketchPersonId}
+                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
+                    bulkAssignData.sketchPersonId
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Assign {selectedOrders.length} Orders
+                </button>
+                <button
+                  onClick={() => setShowBulkAssignModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
