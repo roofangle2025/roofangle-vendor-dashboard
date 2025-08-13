@@ -91,8 +91,6 @@ function App() {
         return <PaymentsPage />;
       case 'vendor-payments':
         return <VendorPaymentsPage />;
-      case 'runtime-management':
-        return <RuntimeManagementPage />;
       case 'services':
         return <ServicesPage />;
       case 'properties':

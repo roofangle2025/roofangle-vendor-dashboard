@@ -27,22 +27,6 @@ export const RuntimeSidebar: React.FC<RuntimeSidebarProps> = ({
         <ul className="space-y-2">
           <li>
             <button 
-              onClick={() => onNavigate('runtime-management')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
-                currentPage === 'runtime-management'
-                  ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500' 
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <Settings className="w-5 h-5 flex-shrink-0" />
-              <div className="flex-1">
-                <span className="font-medium">Configuration</span>
-                <p className="text-xs text-gray-500 mt-0.5">System runtime settings</p>
-              </div>
-            </button>
-          </li>
-          <li>
-            <button 
               onClick={() => onNavigate('services')}
               className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
                 currentPage === 'services'

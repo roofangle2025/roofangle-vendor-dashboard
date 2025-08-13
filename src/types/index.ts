@@ -37,7 +37,7 @@ export interface ActivityLog {
 }
 
 export interface NavigationState {
-  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management' | 'quality-analytics' | 'vendor-report' | 'payments' | 'vendor-payments' | 'runtime-management' | 'services' | 'properties';
+  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management' | 'quality-analytics' | 'vendor-report' | 'payments' | 'vendor-payments' | 'services' | 'properties';
   selectedGroupId?: string;
   selectedOrderId?: string;
   showAccessSidebar: boolean;
