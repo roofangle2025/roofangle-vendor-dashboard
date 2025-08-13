@@ -646,9 +646,9 @@ export const ServicesPage: React.FC = () => {
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
                   onClick={handleAddService}
-                  disabled={!newService.name.trim() || !newService.description.trim()}
+                  disabled={!newService.name.trim() || !newService.description.trim() || newService.commercialPrice <= 0 || newService.residentialPrice <= 0}
                   className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
-                    newService.name.trim() && newService.description.trim()
+                    newService.name.trim() && newService.description.trim() && newService.commercialPrice > 0 && newService.residentialPrice > 0
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
                   }`}
