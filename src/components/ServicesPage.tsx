@@ -349,8 +349,7 @@ export const ServicesPage: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Services Management</h1>
         <button 
@@ -487,7 +486,6 @@ export const ServicesPage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
       {/* Business Group Pricing Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -906,6 +904,6 @@ export const ServicesPage: React.FC = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
