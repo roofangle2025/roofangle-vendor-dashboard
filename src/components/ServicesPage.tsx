@@ -442,18 +442,6 @@ export const ServicesPage: React.FC = () => {
                   <Wrench className="w-5 h-5 text-blue-600" />
                   <div>
                     <h3 className="font-medium text-gray-900">{service.name}</h3>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        service.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {service.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                      <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                        {formatDeliveryTime(service.deliveryTimeHours)}
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>
