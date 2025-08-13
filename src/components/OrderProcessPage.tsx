@@ -23,7 +23,6 @@ interface OrderProcessPageProps {
 export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
