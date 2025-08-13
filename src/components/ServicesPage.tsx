@@ -314,21 +314,6 @@ export const ServicesPage: React.FC = () => {
     return pricing ? (pricing.commercialPrice + pricing.residentialPrice) / 2 : 0; // Average for display
   };
 
-  const updateServicePrice = (serviceId: string, price: number) => {
-    if (!editingPricing) return;
-    
-    setEditingPricing(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        servicePrices: {
-          ...prev.servicePrices,
-          [serviceId]: price
-        }
-      };
-    });
-  };
-
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       month: 'short',
