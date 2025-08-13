@@ -1,216 +1,135 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, Users, Clock, AlertCircle, Search, Filter, ChevronDown, X, Download, Plus, Calendar, CreditCard, CheckCircle, Eye, Edit, Trash2, Upload, FileText, Image, File } from 'lucide-react';
-import type { User } from '../types';
-import { useFileUpload } from '../hooks/useFileUpload';
+import { CreditCard, DollarSign, Calendar, User, Search, Filter, ChevronDown, X, Download, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, Loader, RotateCcw } from 'lucide-react';
+import { User as UserType } from '../types';
 
-interface VendorPayment {
-  id: string;
-  vendorName: string;
-  vendorEmail: string;
-  amount: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
-  paymentMethod: 'bank_transfer' | 'check' | 'paypal' | 'wire_transfer';
-  paymentDate: Date;
-  dueDate: Date;
-  description: string;
-  invoiceNumber: string;
-  businessGroup: string;
-  category: 'contractor_fees' | 'materials' | 'services' | 'equipment' | 'other';
-  approvedBy?: string;
-  paidBy?: string;
-  notes?: string;
-}
-
-type SortField = 'vendorName' | 'amount' | 'paymentDate' | 'dueDate' | 'status';
+type SortField = 'transactionId' | 'customerName' | 'amount' | 'transactionDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 interface FilterState {
-  status: 'all' | 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
-  paymentMethod: 'all' | 'bank_transfer' | 'check' | 'paypal' | 'wire_transfer';
+  status: 'all' | 'completed' | 'pending' | 'failed' | 'refunded';
+  paymentMethod: 'all' | 'credit_card' | 'bank_transfer' | 'check' | 'paypal';
   businessGroup: 'all' | 'Ridgetop' | 'Skyline';
-  category: 'all' | 'contractor_fees' | 'materials' | 'services' | 'equipment' | 'other';
-  dateRange: 'all' | 'today' | 'week' | 'month' | 'overdue';
-  amountRange: 'all' | '0-500' | '500-2000' | '2000-5000' | '5000+';
+  dateRange: 'all' | 'today' | 'week' | 'month' | 'quarter';
+  amountRange: 'all' | '0-100' | '100-500' | '500-1000' | '1000+';
 }
 
-// Mock vendor payments data
-const mockVendorPayments: VendorPayment[] = [
+interface Transaction {
+  id: string;
+  transactionId: string;
+  customerName: string;
+  orderNumber: string;
+  amount: number;
+  status: 'completed' | 'pending' | 'failed' | 'refunded';
+  paymentMethod: 'credit_card' | 'bank_transfer' | 'check' | 'paypal';
+  transactionDate: Date;
+  description: string;
+  businessGroup: string;
+}
+
+// Mock vendor payment transactions
+const mockVendorTransactions: Transaction[] = [
   {
     id: '1',
-    vendorName: 'ABC Construction Co.',
-    vendorEmail: 'billing@abcconstruction.com',
-    amount: 2500.00,
-    status: 'pending',
+    transactionId: 'vp_1234567890',
+    customerName: 'Jane Smith',
+    orderNumber: 'ORD-2025-001',
+    amount: 850.00,
+    status: 'completed',
     paymentMethod: 'bank_transfer',
-    paymentDate: new Date('2025-01-20T10:00:00'),
-    dueDate: new Date('2025-01-18T23:59:59'),
-    description: 'Residential property inspection services - January 2025',
-    invoiceNumber: 'INV-2025-001',
-    businessGroup: 'Ridgetop',
-    category: 'contractor_fees',
-    approvedBy: 'John Doe',
-    notes: 'Monthly contractor payment for inspection services'
+    transactionDate: new Date('2025-01-15T10:30:00'),
+    description: 'Payment for ESX Report - Sketch Work',
+    businessGroup: 'Ridgetop'
   },
   {
     id: '2',
-    vendorName: 'Metro Building Solutions',
-    vendorEmail: 'accounts@metrobuilding.com',
-    amount: 4200.00,
+    transactionId: 'vp_0987654321',
+    customerName: 'Mike Johnson',
+    orderNumber: 'ORD-2025-002',
+    amount: 1200.00,
     status: 'completed',
-    paymentMethod: 'wire_transfer',
-    paymentDate: new Date('2025-01-15T14:30:00'),
-    dueDate: new Date('2025-01-15T23:59:59'),
-    description: 'Commercial building assessment and reporting',
-    invoiceNumber: 'INV-2025-002',
-    businessGroup: 'Skyline',
-    category: 'services',
-    approvedBy: 'Jane Smith',
-    paidBy: 'David Brown',
-    notes: 'Payment for high-rise building assessment project'
+    paymentMethod: 'credit_card',
+    transactionDate: new Date('2025-01-14T14:15:00'),
+    description: 'Payment for Wall Report - QA Review',
+    businessGroup: 'Skyline'
   },
   {
     id: '3',
-    vendorName: 'Quality Materials Inc.',
-    vendorEmail: 'finance@qualitymaterials.com',
-    amount: 850.75,
-    status: 'processing',
+    transactionId: 'vp_1122334455',
+    customerName: 'Sarah Wilson',
+    orderNumber: 'ORD-2025-003',
+    amount: 675.50,
+    status: 'pending',
     paymentMethod: 'check',
-    paymentDate: new Date('2025-01-16T09:00:00'),
-    dueDate: new Date('2025-01-14T23:59:59'),
-    description: 'Construction materials and supplies',
-    invoiceNumber: 'INV-2025-003',
-    businessGroup: 'Ridgetop',
-    category: 'materials',
-    approvedBy: 'Mike Johnson',
-    notes: 'Materials for residential project completion'
+    transactionDate: new Date('2025-01-13T09:45:00'),
+    description: 'Payment for DAD Report - Sketch Work',
+    businessGroup: 'Ridgetop'
   },
   {
     id: '4',
-    vendorName: 'Tech Equipment Rental',
-    vendorEmail: 'billing@techequipment.com',
-    amount: 1200.00,
-    status: 'failed',
+    transactionId: 'vp_5566778899',
+    customerName: 'David Brown',
+    orderNumber: 'ORD-2025-004',
+    amount: 1450.00,
+    status: 'completed',
     paymentMethod: 'bank_transfer',
-    paymentDate: new Date('2025-01-12T11:30:00'),
-    dueDate: new Date('2025-01-10T23:59:59'),
-    description: 'Equipment rental for inspection tools',
-    invoiceNumber: 'INV-2025-004',
-    businessGroup: 'Skyline',
-    category: 'equipment',
-    approvedBy: 'Sarah Wilson',
-    notes: 'Payment failed - need to retry with updated bank details'
+    transactionDate: new Date('2025-01-12T16:20:00'),
+    description: 'Payment for Rush Order - Manager Approval',
+    businessGroup: 'Skyline'
   },
   {
     id: '5',
-    vendorName: 'Professional Services LLC',
-    vendorEmail: 'payments@professionalservices.com',
-    amount: 3500.00,
-    status: 'pending',
-    paymentMethod: 'paypal',
-    paymentDate: new Date('2025-01-22T16:00:00'),
-    dueDate: new Date('2025-01-25T23:59:59'),
-    description: 'Consulting and advisory services',
-    invoiceNumber: 'INV-2025-005',
-    businessGroup: 'Ridgetop',
-    category: 'services',
-    approvedBy: 'John Doe',
-    notes: 'Quarterly consulting payment'
+    transactionId: 'vp_9988776655',
+    customerName: 'Jane Smith',
+    orderNumber: 'ORD-2025-005',
+    amount: 950.75,
+    status: 'failed',
+    paymentMethod: 'credit_card',
+    transactionDate: new Date('2025-01-11T11:30:00'),
+    description: 'Payment for ESX Report - QA Review',
+    businessGroup: 'Ridgetop'
   }
 ];
 
 export const VendorPaymentsPage: React.FC = () => {
-  const [payments, setPayments] = useState<VendorPayment[]>(mockVendorPayments);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockVendorTransactions);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<VendorPayment | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'manual'>('stripe');
-  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  const [editingPayment, setEditingPayment] = useState<VendorPayment | null>(null);
-  const [sortField, setSortField] = useState<SortField>('dueDate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('transactionDate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
     paymentMethod: 'all',
     businessGroup: 'all',
-    category: 'all',
     dateRange: 'all',
     amountRange: 'all'
   });
 
-  const [newPayment, setNewPayment] = useState({
-    vendorName: '',
-    vendorEmail: '',
-    amount: '',
-    paymentMethod: 'bank_transfer' as VendorPayment['paymentMethod'],
-    dueDate: '',
-    description: '',
-    invoiceNumber: '',
-    businessGroup: 'Ridgetop' as string,
-    description: '',
-    attachments: [] as any[],
-    notes: ''
-  });
-
-  // File upload hook for payment documents
-  const {
-    uploadedFiles,
-    isUploading,
-    uploadFiles,
-    removeFile,
-    clearAllFiles
-  } = useFileUpload({
-    maxFileSize: 10,
-    acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'],
-    maxFiles: 5,
-    onUploadComplete: (files) => {
-      console.log('Payment documents uploaded:', files);
-    },
-    onUploadError: (error) => {
-      alert('Upload error: ' + error);
-    }
-  });
-
-  const getStatusColor = (status: VendorPayment['status']) => {
+  const getStatusColor = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-      case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-      case 'cancelled': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'refunded': return 'bg-purple-100 text-purple-800 border-purple-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status: VendorPayment['status']) => {
+  const getStatusIcon = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'processing': return <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />;
       case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
       case 'failed': return <AlertCircle className="w-4 h-4 text-red-600" />;
-      case 'cancelled': return <X className="w-4 h-4 text-gray-600" />;
+      case 'refunded': return <AlertCircle className="w-4 h-4 text-purple-600" />;
       default: return <Clock className="w-4 h-4 text-gray-600" />;
     }
   };
 
-  const getCategoryColor = (category: VendorPayment['category']) => {
-    switch (category) {
-      case 'contractor_fees': return 'bg-blue-100 text-blue-800';
-      case 'materials': return 'bg-green-100 text-green-800';
-      case 'services': return 'bg-purple-100 text-purple-800';
-      case 'equipment': return 'bg-orange-100 text-orange-800';
-      case 'other': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPaymentMethodDisplay = (method: VendorPayment['paymentMethod']) => {
+  const getPaymentMethodDisplay = (method: Transaction['paymentMethod']) => {
     switch (method) {
+      case 'credit_card': return 'Credit Card';
       case 'bank_transfer': return 'Bank Transfer';
       case 'check': return 'Check';
       case 'paypal': return 'PayPal';
-      case 'wire_transfer': return 'Wire Transfer';
       default: return method;
     }
   };
@@ -220,7 +139,7 @@ export const VendorPaymentsPage: React.FC = () => {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortDirection(field === 'paymentDate' || field === 'amount' || field === 'dueDate' ? 'desc' : 'asc');
+      setSortDirection(field === 'transactionDate' || field === 'amount' ? 'desc' : 'asc');
     }
   };
 
@@ -234,7 +153,6 @@ export const VendorPaymentsPage: React.FC = () => {
       status: 'all',
       paymentMethod: 'all',
       businessGroup: 'all',
-      category: 'all',
       dateRange: 'all',
       amountRange: 'all'
     });
@@ -246,7 +164,6 @@ export const VendorPaymentsPage: React.FC = () => {
            filters.status !== 'all' || 
            filters.paymentMethod !== 'all' || 
            filters.businessGroup !== 'all' || 
-           filters.category !== 'all' ||
            filters.dateRange !== 'all' ||
            filters.amountRange !== 'all';
   };
@@ -262,55 +179,48 @@ export const VendorPaymentsPage: React.FC = () => {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
-  const isOverdue = (dueDate: Date, status: VendorPayment['status']) => {
-    return (status === 'pending' || status === 'processing') && dueDate < new Date();
-  };
-
-  const filteredAndSortedPayments = useMemo(() => {
-    let filtered = payments;
+  const filteredAndSortedTransactions = useMemo(() => {
+    let filtered = transactions;
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(payment =>
-        payment.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.vendorEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.description.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(transaction =>
+        transaction.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Status filter
     if (filters.status !== 'all') {
-      filtered = filtered.filter(payment => payment.status === filters.status);
+      filtered = filtered.filter(transaction => transaction.status === filters.status);
     }
 
     // Payment Method filter
     if (filters.paymentMethod !== 'all') {
-      filtered = filtered.filter(payment => payment.paymentMethod === filters.paymentMethod);
+      filtered = filtered.filter(transaction => transaction.paymentMethod === filters.paymentMethod);
     }
 
     // Business Group filter
     if (filters.businessGroup !== 'all') {
-      filtered = filtered.filter(payment => payment.businessGroup === filters.businessGroup);
-    }
-
-    // Category filter
-    if (filters.category !== 'all') {
-      filtered = filtered.filter(payment => payment.category === filters.category);
+      filtered = filtered.filter(transaction => transaction.businessGroup === filters.businessGroup);
     }
 
     // Amount Range filter
     if (filters.amountRange !== 'all') {
-      filtered = filtered.filter(payment => {
+      filtered = filtered.filter(transaction => {
         switch (filters.amountRange) {
-          case '0-500': return payment.amount >= 0 && payment.amount <= 500;
-          case '500-2000': return payment.amount > 500 && payment.amount <= 2000;
-          case '2000-5000': return payment.amount > 2000 && payment.amount <= 5000;
-          case '5000+': return payment.amount > 5000;
+          case '0-100': return transaction.amount >= 0 && transaction.amount <= 100;
+          case '100-500': return transaction.amount > 100 && transaction.amount <= 500;
+          case '500-1000': return transaction.amount > 500 && transaction.amount <= 1000;
+          case '1000+': return transaction.amount > 1000;
           default: return true;
         }
       });
@@ -319,16 +229,13 @@ export const VendorPaymentsPage: React.FC = () => {
     // Date range filter
     if (filters.dateRange !== 'all') {
       const now = new Date();
-      filtered = filtered.filter(payment => {
-        if (filters.dateRange === 'overdue') {
-          return isOverdue(payment.dueDate, payment.status);
-        }
-        
-        const daysDiff = Math.floor((now.getTime() - payment.paymentDate.getTime()) / (1000 * 60 * 60 * 24));
+      filtered = filtered.filter(transaction => {
+        const daysDiff = Math.floor((now.getTime() - transaction.transactionDate.getTime()) / (1000 * 60 * 60 * 24));
         switch (filters.dateRange) {
           case 'today': return daysDiff === 0;
           case 'week': return daysDiff <= 7;
           case 'month': return daysDiff <= 30;
+          case 'quarter': return daysDiff <= 90;
           default: return true;
         }
       });
@@ -339,21 +246,21 @@ export const VendorPaymentsPage: React.FC = () => {
       let aValue: any, bValue: any;
       
       switch (sortField) {
-        case 'vendorName':
-          aValue = a.vendorName.toLowerCase();
-          bValue = b.vendorName.toLowerCase();
+        case 'transactionId':
+          aValue = a.transactionId.toLowerCase();
+          bValue = b.transactionId.toLowerCase();
+          break;
+        case 'customerName':
+          aValue = a.customerName.toLowerCase();
+          bValue = b.customerName.toLowerCase();
           break;
         case 'amount':
           aValue = a.amount;
           bValue = b.amount;
           break;
-        case 'paymentDate':
-          aValue = a.paymentDate.getTime();
-          bValue = b.paymentDate.getTime();
-          break;
-        case 'dueDate':
-          aValue = a.dueDate.getTime();
-          bValue = b.dueDate.getTime();
+        case 'transactionDate':
+          aValue = a.transactionDate.getTime();
+          bValue = b.transactionDate.getTime();
           break;
         case 'status':
           aValue = a.status;
@@ -369,186 +276,23 @@ export const VendorPaymentsPage: React.FC = () => {
     });
 
     return filtered;
-  }, [payments, searchTerm, filters, sortField, sortDirection]);
+  }, [transactions, searchTerm, filters, sortField, sortDirection]);
 
-  const handleAddPayment = () => {
-    if (newPayment.vendorName.trim() && newPayment.amount && newPayment.dueDate) {
-      const payment: VendorPayment = {
-        id: Date.now().toString(),
-        vendorName: newPayment.vendorName.trim(),
-        vendorEmail: newPayment.vendorEmail.trim(),
-        amount: parseFloat(newPayment.amount),
-        status: 'pending',
-        paymentMethod: newPayment.paymentMethod,
-        paymentDate: new Date(),
-        dueDate: new Date(newPayment.dueDate),
-        description: newPayment.description.trim(),
-        invoiceNumber: newPayment.invoiceNumber.trim(),
-        businessGroup: newPayment.businessGroup,
-        createdAt: new Date(),
-        attachments: uploadedFiles.map(f => ({
-          id: f.id,
-          name: f.file.name,
-          size: f.file.size,
-          type: f.file.type,
-          uploadedAt: f.uploadedAt
-        })),
-        approvedBy: 'Yashwnath K',
-        notes: newPayment.notes.trim()
-      };
-      
-      setPayments(prev => [...prev, payment]);
-      setNewPayment({
-        vendorName: '',
-        vendorEmail: '',
-        amount: '',
-        paymentMethod: 'bank_transfer',
-        dueDate: '',
-        description: '',
-        invoiceNumber: '',
-        businessGroup: 'Ridgetop',
-        description: '',
-        attachments: [],
-        notes: ''
-      });
-      clearAllFiles();
-      setShowAddModal(false);
-      alert(`Vendor payment for ${payment.vendorName} added successfully!`);
-    }
-  };
-
-  const handleUpdateStatus = (paymentId: string, newStatus: VendorPayment['status']) => {
-    setPayments(prev => prev.map(payment => 
-      payment.id === paymentId 
-        ? { 
-            ...payment, 
-            status: newStatus,
-            paidBy: newStatus === 'completed' ? 'Yashwnath K' : payment.paidBy
-          }
-        : payment
-    ));
-  };
-
-  const handleDeletePayment = (paymentId: string) => {
-    const payment = payments.find(p => p.id === paymentId);
-    if (payment && confirm(`Are you sure you want to delete payment to ${payment.vendorName}?`)) {
-      setPayments(prev => prev.filter(p => p.id !== paymentId));
-    }
-  };
-
-  const handlePayClick = (payment: VendorPayment) => {
-    setSelectedPayment(payment);
-    setPaymentMethod('stripe');
-    setShowPayModal(true);
-  };
-
-  const handleProcessPayment = async () => {
-    if (!selectedPayment) return;
-    
-    setProcessingPayment(selectedPayment.id);
-    
-    try {
-      if (paymentMethod === 'stripe') {
-        // Simulate Stripe payment processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Update payment status to completed
-        setPayments(prev => prev.map(p => 
-          p.id === selectedPayment.id 
-            ? { ...p, status: 'completed', paidAt: new Date() }
-            : p
-        ));
-        
-        alert(`Payment of ${formatCurrency(selectedPayment.amount)} to ${selectedPayment.vendorName} processed successfully via Stripe!`);
-      } else {
-        // Manual payment - just update status
-        setPayments(prev => prev.map(p => 
-          p.id === selectedPayment.id 
-            ? { ...p, status: 'processing' }
-            : p
-        ));
-        
-        alert(`Payment marked as processing. Upload supporting documents to complete the record.`);
-      }
-      
-      setShowPayModal(false);
-      setSelectedPayment(null);
-    } catch (error) {
-      alert('Payment processing failed. Please try again.');
-    } finally {
-      setProcessingPayment(null);
-    }
-  };
-
-  const handleFileUpload = (paymentId: string, files: FileList) => {
-    // In a real app, you would upload files to server and associate with payment
-    const fileArray = Array.from(files);
-    console.log(`Uploading ${fileArray.length} files for payment ${paymentId}:`, fileArray);
-    
-    // Update payment with file attachments
-    setPayments(prev => prev.map(p => 
-      p.id === paymentId 
-        ? { 
-            ...p, 
-            attachments: [
-              ...(p.attachments || []),
-              ...fileArray.map(file => ({
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                uploadedAt: new Date()
-              }))
-            ]
-          }
-        : p
-    ));
-    
-    alert(`${fileArray.length} document(s) uploaded successfully!`);
-  };
-
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.toLowerCase().split('.').pop();
-    switch (extension) {
-      case 'pdf':
-        return <FileText className="w-4 h-4 text-red-600" />;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-        return <Image className="w-4 h-4 text-green-600" />;
-      case 'doc':
-      case 'docx':
-        return <File className="w-4 h-4 text-blue-600" />;
-      default:
-        return <File className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const handleExportPayments = () => {
-    const headers = ['Vendor Name', 'Vendor Email', 'Amount', 'Status', 'Payment Method', 'Due Date', 'Payment Date', 'Invoice Number', 'Business Group', 'Category', 'Description'];
+  const handleExportTransactions = () => {
+    const headers = ['Transaction ID', 'Vendor Name', 'Order Number', 'Amount', 'Status', 'Payment Method', 'Date', 'Business Group', 'Description'];
 
     const csvContent = [
       headers.join(','),
-      ...filteredAndSortedPayments.map(payment => [
-        `"${payment.vendorName}"`,
-        payment.vendorEmail,
-        payment.amount,
-        payment.status,
-        getPaymentMethodDisplay(payment.paymentMethod),
-        payment.dueDate.toISOString(),
-        payment.paymentDate.toISOString(),
-        payment.invoiceNumber,
-        payment.businessGroup,
-        payment.category,
-        `"${payment.description}"`
+      ...filteredAndSortedTransactions.map(transaction => [
+        transaction.transactionId,
+        `"${transaction.customerName}"`,
+        transaction.orderNumber,
+        transaction.amount,
+        transaction.status,
+        getPaymentMethodDisplay(transaction.paymentMethod),
+        transaction.transactionDate.toISOString(),
+        transaction.businessGroup,
+        `"${transaction.description}"`
       ].join(','))
     ].join('\n');
 
@@ -563,34 +307,27 @@ export const VendorPaymentsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleViewTransaction = (transactionId: string) => {
+    alert(`View vendor payment details for ${transactionId}`);
+  };
+
   // Calculate summary statistics
-  const totalAmount = filteredAndSortedPayments.reduce((sum, p) => sum + p.amount, 0);
-  const pendingPayments = filteredAndSortedPayments.filter(p => p.status === 'pending').length;
-  const overduePayments = filteredAndSortedPayments.filter(p => isOverdue(p.dueDate, p.status)).length;
-  const completedPayments = filteredAndSortedPayments.filter(p => p.status === 'completed').length;
+  const totalAmount = filteredAndSortedTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const completedTransactions = filteredAndSortedTransactions.filter(t => t.status === 'completed').length;
+  const pendingTransactions = filteredAndSortedTransactions.filter(t => t.status === 'pending').length;
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Vendor Payments</h1>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Add Payment</span>
-            <span className="sm:hidden">Add</span>
-          </button>
-          <button 
-            onClick={handleExportPayments}
-            className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Export Payments</span>
-            <span className="sm:hidden">Export</span>
-          </button>
-        </div>
+        <button 
+          onClick={handleExportTransactions}
+          className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-sm"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          <span className="hidden sm:inline">Export Vendor Payments</span>
+          <span className="sm:hidden">Export</span>
+        </button>
       </div>
 
       {/* Summary Statistics */}
@@ -600,27 +337,7 @@ export const VendorPaymentsPage: React.FC = () => {
             <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             <div className="ml-3 sm:ml-4">
               <p className="text-xl sm:text-2xl font-semibold text-gray-900">{formatCurrency(totalAmount)}</p>
-              <p className="text-gray-600 text-sm sm:text-base">Total Amount</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-          <div className="flex items-center">
-            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
-            <div className="ml-3 sm:ml-4">
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{pendingPayments}</p>
-              <p className="text-gray-600 text-sm sm:text-base">Pending</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-          <div className="flex items-center">
-            <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
-            <div className="ml-3 sm:ml-4">
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{overduePayments}</p>
-              <p className="text-gray-600 text-sm sm:text-base">Overdue</p>
+              <p className="text-gray-600 text-sm sm:text-base">Total Paid</p>
             </div>
           </div>
         </div>
@@ -629,8 +346,28 @@ export const VendorPaymentsPage: React.FC = () => {
           <div className="flex items-center">
             <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             <div className="ml-3 sm:ml-4">
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{completedPayments}</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{completedTransactions}</p>
               <p className="text-gray-600 text-sm sm:text-base">Completed</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="flex items-center">
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
+            <div className="ml-3 sm:ml-4">
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{pendingTransactions}</p>
+              <p className="text-gray-600 text-sm sm:text-base">Pending</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="flex items-center">
+            <CreditCard className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+            <div className="ml-3 sm:ml-4">
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{filteredAndSortedTransactions.length}</p>
+              <p className="text-gray-600 text-sm sm:text-base">Total Payments</p>
             </div>
           </div>
         </div>
@@ -645,7 +382,7 @@ export const VendorPaymentsPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search by vendor name, email, invoice number, or description..."
+                placeholder="Search by transaction ID, vendor name, order number, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
@@ -683,7 +420,7 @@ export const VendorPaymentsPage: React.FC = () => {
         {/* Filter Options */}
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Status Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -693,11 +430,10 @@ export const VendorPaymentsPage: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                 >
                   <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
                   <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
                   <option value="failed">Failed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="refunded">Refunded</option>
                 </select>
               </div>
 
@@ -710,10 +446,10 @@ export const VendorPaymentsPage: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                 >
                   <option value="all">All Methods</option>
+                  <option value="credit_card">Credit Card</option>
                   <option value="bank_transfer">Bank Transfer</option>
                   <option value="check">Check</option>
                   <option value="paypal">PayPal</option>
-                  <option value="wire_transfer">Wire Transfer</option>
                 </select>
               </div>
 
@@ -731,23 +467,6 @@ export const VendorPaymentsPage: React.FC = () => {
                 </select>
               </div>
 
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select
-                  value={filters.category}
-                  onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value as FilterState['category'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                >
-                  <option value="all">All Categories</option>
-                  <option value="contractor_fees">Contractor Fees</option>
-                  <option value="materials">Materials</option>
-                  <option value="services">Services</option>
-                  <option value="equipment">Equipment</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
               {/* Amount Range Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Amount Range</label>
@@ -757,10 +476,10 @@ export const VendorPaymentsPage: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                 >
                   <option value="all">All Amounts</option>
-                  <option value="0-500">$0 - $500</option>
-                  <option value="500-2000">$500 - $2,000</option>
-                  <option value="2000-5000">$2,000 - $5,000</option>
-                  <option value="5000+">$5,000+</option>
+                  <option value="0-100">$0 - $100</option>
+                  <option value="100-500">$100 - $500</option>
+                  <option value="500-1000">$500 - $1,000</option>
+                  <option value="1000+">$1,000+</option>
                 </select>
               </div>
 
@@ -776,7 +495,7 @@ export const VendorPaymentsPage: React.FC = () => {
                   <option value="today">Today</option>
                   <option value="week">Last Week</option>
                   <option value="month">Last Month</option>
-                  <option value="overdue">Overdue</option>
+                  <option value="quarter">Last Quarter</option>
                 </select>
               </div>
             </div>
@@ -786,7 +505,7 @@ export const VendorPaymentsPage: React.FC = () => {
         {/* Results Summary */}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
-            Showing {filteredAndSortedPayments.length} of {payments.length} vendor payments
+            Showing {filteredAndSortedTransactions.length} of {transactions.length} vendor payments
             {hasActiveFilters() && (
               <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
                 Filtered
@@ -800,73 +519,56 @@ export const VendorPaymentsPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {/* Mobile Card View */}
         <div className="block lg:hidden">
-          {filteredAndSortedPayments.length === 0 ? (
+          {filteredAndSortedTransactions.length === 0 ? (
             <div className="p-6 text-center">
-              <Users className="w-12 h-12 text-gray-300 mb-4 mx-auto" />
+              <CreditCard className="w-12 h-12 text-gray-300 mb-4 mx-auto" />
               <p className="text-gray-500 text-lg font-medium">No vendor payments found</p>
               <p className="text-gray-400 text-sm mt-1">
                 {hasActiveFilters() 
                   ? 'Try adjusting your search or filters'
-                  : 'Add your first vendor payment to get started'
+                  : 'No vendor payments available'
                 }
               </p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {filteredAndSortedPayments.map((payment) => (
-                <div key={payment.id} className="p-4 hover:bg-gray-50 transition-colors duration-200">
+              {filteredAndSortedTransactions.map((transaction) => (
+                <div key={transaction.id} className="p-4 hover:bg-gray-50 transition-colors duration-200">
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <p className="font-medium text-gray-900">{payment.vendorName}</p>
-                        {isOverdue(payment.dueDate, payment.status) && (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                            Overdue
-                          </span>
-                        )}
+                        <p className="font-medium text-gray-900">{transaction.transactionId}</p>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(transaction.status)}`}>
+                          {transaction.status}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-500">{payment.vendorEmail}</p>
-                      <p className="text-sm text-gray-500">{payment.invoiceNumber}</p>
+                      <p className="text-sm text-gray-500">{transaction.customerName}</p>
+                      <p className="text-sm text-gray-500">{transaction.orderNumber}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-gray-900">{formatCurrency(payment.amount)}</p>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(payment.status)}`}>
-                        {payment.status}
-                      </span>
+                      <p className="text-lg font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                      <button
+                        onClick={() => handleViewTransaction(transaction.transactionId)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1 text-gray-400" />
-                      <span className="text-xs">Due: {formatDate(payment.dueDate)}</span>
+                      <span className="text-xs">{formatDate(transaction.transactionDate)}</span>
                     </div>
                     <div className="flex items-center">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(payment.category)}`}>
-                        {payment.category.replace('_', ' ')}
-                      </span>
+                      <CreditCard className="w-4 h-4 mr-1 text-gray-400" />
+                      <span className="text-xs">{getPaymentMethodDisplay(transaction.paymentMethod)}</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <select
-                      value={payment.status}
-                      onChange={(e) => handleUpdateStatus(payment.id, e.target.value as VendorPayment['status'])}
-                      className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="completed">Completed</option>
-                      <option value="failed">Failed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                    <button
-                      onClick={() => handleDeletePayment(payment.id)}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">{transaction.description}</p>
                 </div>
               ))}
             </div>
@@ -880,15 +582,24 @@ export const VendorPaymentsPage: React.FC = () => {
               <tr>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                  onClick={() => handleSort('vendorName')}
+                  onClick={() => handleSort('transactionId')}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>Vendor</span>
-                    <span className="text-blue-600">{getSortIcon('vendorName')}</span>
+                    <span>Transaction ID</span>
+                    <span className="text-blue-600">{getSortIcon('transactionId')}</span>
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => handleSort('customerName')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Vendor Name</span>
+                    <span className="text-blue-600">{getSortIcon('customerName')}</span>
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Invoice Number
+                  Order Number
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
@@ -913,15 +624,12 @@ export const VendorPaymentsPage: React.FC = () => {
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                  onClick={() => handleSort('dueDate')}
+                  onClick={() => handleSort('transactionDate')}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>Due Date</span>
-                    <span className="text-blue-600">{getSortIcon('dueDate')}</span>
+                    <span>Date</span>
+                    <span className="text-blue-600">{getSortIcon('transactionDate')}</span>
                   </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -929,136 +637,70 @@ export const VendorPaymentsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAndSortedPayments.length === 0 ? (
+              {filteredAndSortedTransactions.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center">
-                      <Users className="w-12 h-12 text-gray-300 mb-4" />
+                      <CreditCard className="w-12 h-12 text-gray-300 mb-4" />
                       <p className="text-gray-500 text-lg font-medium">No vendor payments found</p>
                       <p className="text-gray-400 text-sm mt-1">
                         {hasActiveFilters() 
                           ? 'Try adjusting your search or filters'
-                          : 'Add your first vendor payment to get started'
+                          : 'No vendor payments available'
                         }
                       </p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                filteredAndSortedPayments.map((payment) => (
-                  <tr key={payment.id} className={`hover:bg-gray-50 transition-colors duration-200 ${
-                    isOverdue(payment.dueDate, payment.status) ? 'bg-red-50' : ''
-                  }`}>
+                filteredAndSortedTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <User className="w-4 h-4 text-blue-600 mr-2" />
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-gray-900">{payment.vendorName}</span>
-                            {isOverdue(payment.dueDate, payment.status) && (
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                Overdue
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">{payment.vendorEmail}</div>
-                        </div>
+                        <CreditCard className="w-4 h-4 text-blue-600 mr-2" />
+                        <span className="text-sm font-medium text-gray-900">{transaction.transactionId}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900">{payment.invoiceNumber}</span>
+                      <div className="flex items-center">
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-sm text-gray-900">{transaction.customerName}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{transaction.orderNumber}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <DollarSign className="w-4 h-4 text-green-600 mr-1" />
-                        <span className="text-sm font-bold text-gray-900">{formatCurrency(payment.amount)}</span>
+                        <span className="text-sm font-bold text-gray-900">{formatCurrency(transaction.amount)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {getStatusIcon(payment.status)}
-                        <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(payment.status)}`}>
-                          {payment.status}
+                        {getStatusIcon(transaction.status)}
+                        <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(transaction.status)}`}>
+                          {transaction.status}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900">{getPaymentMethodDisplay(payment.paymentMethod)}</span>
+                      <span className="text-sm text-gray-900">{getPaymentMethodDisplay(transaction.paymentMethod)}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">{formatDate(payment.dueDate)}</span>
+                        <span className="text-sm text-gray-900">{formatDate(transaction.transactionDate)}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(payment.category)}`}>
-                        {payment.category.replace('_', ' ')}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <button 
-                          onClick={() => handlePayClick(payment)}
-                          disabled={payment.status === 'completed' || processingPayment === payment.id}
-                          className={`inline-flex items-center px-3 py-1 rounded-md transition-colors duration-200 text-xs font-medium ${
-                            payment.status === 'completed' 
-                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                              : processingPayment === payment.id
-                                ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
-                                : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
-                        >
-                          {processingPayment === payment.id ? (
-                            <>
-                              <div className="w-3 h-3 mr-1 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                              Processing
-                            </>
-                          ) : payment.status === 'completed' ? (
-                            <>
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Paid
-                            </>
-                          ) : (
-                            <>
-                              <DollarSign className="w-3 h-3 mr-1" />
-                              Pay
-                            </>
-                          )}
-                        </button>
-                        
-                        {/* File Upload Button */}
-                        <label className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium cursor-pointer">
-                          <Upload className="w-3 h-3 mr-1" />
-                          Upload
-                          <input
-                            type="file"
-                            multiple
-                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                            onChange={(e) => e.target.files && handleFileUpload(payment.id, e.target.files)}
-                            className="hidden"
-                          />
-                        </label>
-                        
-                        <select
-                          value={payment.status}
-                          onChange={(e) => handleUpdateStatus(payment.id, e.target.value as VendorPayment['status'])}
-                          className="px-3 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="completed">Completed</option>
-                          <option value="failed">Failed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                        
-                        <button
-                          onClick={() => handleDeletePayment(payment.id)}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleViewTransaction(transaction.transactionId)}
+                        className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -1067,205 +709,6 @@ export const VendorPaymentsPage: React.FC = () => {
           </table>
         </div>
       </div>
-
-      {/* Add Payment Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowAddModal(false)} />
-            
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full mx-4">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mr-2" />
-                    <h3 className="text-lg font-medium text-gray-900">Add Vendor Payment</h3>
-                  </div>
-                  <button 
-                    onClick={() => setShowAddModal(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
-                  >
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vendor Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={newPayment.vendorName}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, vendorName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="Enter vendor name"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vendor Email
-                    </label>
-                    <input
-                      type="email"
-                      value={newPayment.vendorEmail}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, vendorEmail: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="vendor@example.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Amount *
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={newPayment.amount}
-                        onChange={(e) => setNewPayment(prev => ({ ...prev, amount: e.target.value }))}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        placeholder="0.00"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Due Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={newPayment.dueDate}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Payment Method *
-                    </label>
-                    <select
-                      value={newPayment.paymentMethod}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, paymentMethod: e.target.value as VendorPayment['paymentMethod'] }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                    >
-                      <option value="bank_transfer">Bank Transfer</option>
-                      <option value="check">Check</option>
-                      <option value="paypal">PayPal</option>
-                      <option value="wire_transfer">Wire Transfer</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Invoice Number *
-                    </label>
-                    <input
-                      type="text"
-                      value={newPayment.invoiceNumber}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="INV-2025-001"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Business Group *
-                    </label>
-                    <select
-                      value={newPayment.businessGroup}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, businessGroup: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                    >
-                      <option value="Ridgetop">Ridgetop</option>
-                      <option value="Skyline">Skyline</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category *
-                    </label>
-                    <select
-                      value={newPayment.category}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, category: e.target.value as VendorPayment['category'] }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                    >
-                      <option value="contractor_fees">Contractor Fees</option>
-                      <option value="materials">Materials</option>
-                      <option value="services">Services</option>
-                      <option value="equipment">Equipment</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description *
-                    </label>
-                    <textarea
-                      value={newPayment.description}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="Describe the payment purpose..."
-                      rows={2}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Notes
-                    </label>
-                    <textarea
-                      value={newPayment.notes}
-                      onChange={(e) => setNewPayment(prev => ({ ...prev, notes: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="Additional notes (optional)..."
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
-                <button
-                  onClick={handleAddPayment}
-                  disabled={!newPayment.vendorName.trim() || !newPayment.amount || !newPayment.dueDate || !newPayment.description.trim()}
-                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
-                    newPayment.vendorName.trim() && newPayment.amount && newPayment.dueDate && newPayment.description.trim()
-                      ? 'bg-blue-600 hover:bg-blue-700'
-                      : 'bg-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Payment
-                </button>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
-
