@@ -185,7 +185,7 @@ export const mockOrders: Order[] = [
     status: 'unassigned',
     processStatus: 'new',
     orderDate: new Date('2025-01-15T09:00:00'),
-    deliveryDate: new Date('2025-01-20T10:00:00'),
+    deliveryDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
     items: [
       { id: '1', name: 'ESX Report', quantity: 1, description: 'Residential property inspection report' },
       { id: '2', name: 'DAD Report', quantity: 1, description: 'Damage assessment documentation' }
@@ -219,7 +219,7 @@ export const mockOrders: Order[] = [
     status: 'in-progress',
     processStatus: 'sketch',
     orderDate: new Date('2025-01-14T14:30:00'),
-    deliveryDate: new Date('2025-01-18T08:00:00'),
+    deliveryDate: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours from now
     items: [
       { id: '3', name: 'Wall Report', quantity: 1, description: 'Commercial wall inspection' },
       { id: '4', name: 'DAD Report', quantity: 1, description: 'Damage assessment for commercial property' }

@@ -117,6 +117,9 @@ export interface Service {
   id: string;
   name: string;
   description: string;
+  commercialPrice: number;
+  residentialPrice: number;
+  deliveryTimeHours: number; // Delivery time in hours
   isActive: boolean;
   createdAt: Date;
   modifiedAt: Date;
@@ -126,7 +129,12 @@ export interface BusinessGroupPricing {
   id: string;
   businessGroupId: string;
   businessGroupName: string;
-  servicePrices: { [serviceId: string]: number }; // Dynamic pricing for each service
+  servicePrices: { 
+    [serviceId: string]: {
+      commercialPrice: number;
+      residentialPrice: number;
+    }
+  }; // Dynamic pricing for each service with commercial/residential rates
   rushOrderPrice: number;
   pdfPrice: number;
   isActive: boolean;

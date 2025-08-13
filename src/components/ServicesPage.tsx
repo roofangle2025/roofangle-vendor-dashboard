@@ -16,6 +16,9 @@ export const ServicesPage: React.FC = () => {
       id: '1',
       name: 'ESX Report',
       description: 'Comprehensive property inspection and reporting service',
+      commercialPrice: 1400.00,
+      residentialPrice: 1200.00,
+      deliveryTimeHours: 48, // 48 hours = 2 days
       basePrice: 1200.00,
       isActive: true,
       createdAt: new Date('2024-12-01'),
@@ -25,6 +28,9 @@ export const ServicesPage: React.FC = () => {
       id: '2',
       name: 'Wall Report',
       description: 'Detailed wall inspection and structural analysis',
+      commercialPrice: 1100.00,
+      residentialPrice: 900.00,
+      deliveryTimeHours: 72, // 72 hours = 3 days
       basePrice: 900.00,
       isActive: true,
       createdAt: new Date('2024-12-01'),
@@ -34,6 +40,9 @@ export const ServicesPage: React.FC = () => {
       id: '3',
       name: 'DAD Report',
       description: 'Damage assessment documentation and analysis',
+      commercialPrice: 1300.00,
+      residentialPrice: 1050.00,
+      deliveryTimeHours: 60, // 60 hours = 2.5 days
       basePrice: 1050.00,
       isActive: true,
       createdAt: new Date('2024-12-01'),
@@ -47,9 +56,9 @@ export const ServicesPage: React.FC = () => {
       businessGroupId: 'ridgetop',
       businessGroupName: 'Ridgetop',
       servicePrices: {
-        '1': 1250.00, // ESX Report
-        '2': 950.00,  // Wall Report
-        '3': 1100.00  // DAD Report
+        '1': { commercialPrice: 1450.00, residentialPrice: 1250.00 }, // ESX Report
+        '2': { commercialPrice: 1150.00, residentialPrice: 950.00 },  // Wall Report
+        '3': { commercialPrice: 1350.00, residentialPrice: 1100.00 }  // DAD Report
       },
       rushOrderPrice: 500.00,
       pdfPrice: 150.00,
@@ -62,9 +71,9 @@ export const ServicesPage: React.FC = () => {
       businessGroupId: 'skyline',
       businessGroupName: 'Skyline',
       servicePrices: {
-        '1': 1400.00, // ESX Report
-        '2': 1100.00, // Wall Report
-        '3': 1300.00  // DAD Report
+        '1': { commercialPrice: 1600.00, residentialPrice: 1400.00 }, // ESX Report
+        '2': { commercialPrice: 1300.00, residentialPrice: 1100.00 }, // Wall Report
+        '3': { commercialPrice: 1500.00, residentialPrice: 1300.00 }  // DAD Report
       },
       rushOrderPrice: 600.00,
       pdfPrice: 200.00,
@@ -88,6 +97,9 @@ export const ServicesPage: React.FC = () => {
   const [newService, setNewService] = useState({
     name: '',
     description: '',
+    commercialPrice: 0,
+    residentialPrice: 0,
+    deliveryTimeHours: 48,
     basePrice: 0,
     isActive: true
   });
@@ -171,12 +183,52 @@ export const ServicesPage: React.FC = () => {
     return filtered;
   }, [services, searchTerm, filters, sortField, sortDirection]);
 
+  const getServicePricing = (businessGroup: BusinessGroupPricing, serviceId: string) => {
+    return businessGroup.servicePrices[serviceId] || { commercialPrice: 0, residentialPrice: 0 };
+  };
+
+  const updateServicePricing = (serviceId: string, type: 'commercial' | 'residential', price: number) => {
+    if (!editingPricing) return;
+    
+    setEditingPricing(prev => {
+      if (!prev) return null;
+      const currentPricing = prev.servicePrices[serviceId] || { commercialPrice: 0, residentialPrice: 0 };
+      return {
+        ...prev,
+        servicePrices: {
+          ...prev.servicePrices,
+          [serviceId]: {
+            ...currentPricing,
+            [type === 'commercial' ? 'commercialPrice' : 'residentialPrice']: price
+          }
+        }
+      };
+    });
+  };
+
+  const formatDeliveryTime = (hours: number): string => {
+    if (hours < 24) {
+      return `${hours} hrs`;
+    } else {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      if (remainingHours === 0) {
+        return `${days} ${days === 1 ? 'day' : 'days'}`;
+      } else {
+        return `${days}d ${remainingHours}h`;
+      }
+    }
+  };
+
   const handleAddService = () => {
-    if (newService.name.trim() && newService.description.trim()) {
+    if (newService.name.trim() && newService.description.trim() && newService.commercialPrice > 0 && newService.residentialPrice > 0) {
       const service: Service = {
         id: Date.now().toString(),
         name: newService.name.trim(),
         description: newService.description.trim(),
+        commercialPrice: newService.commercialPrice,
+        residentialPrice: newService.residentialPrice,
+        deliveryTimeHours: newService.deliveryTimeHours,
         basePrice: newService.basePrice,
         isActive: newService.isActive,
         createdAt: new Date(),
@@ -185,12 +237,15 @@ export const ServicesPage: React.FC = () => {
       
       setServices(prev => [...prev, service]);
       
-      // Add the new service to all business group pricing with base price
+      // Add the new service to all business group pricing with commercial/residential prices
       setBusinessGroupPricing(prev => prev.map(bg => ({
         ...bg,
         servicePrices: {
           ...bg.servicePrices,
-          [service.id]: service.basePrice
+          [service.id]: {
+            commercialPrice: service.commercialPrice,
+            residentialPrice: service.residentialPrice
+          }
         },
         modifiedAt: new Date()
       })));
@@ -198,6 +253,9 @@ export const ServicesPage: React.FC = () => {
       setNewService({
         name: '',
         description: '',
+        commercialPrice: 0,
+        residentialPrice: 0,
+        deliveryTimeHours: 48,
         basePrice: 0,
         isActive: true
       });
@@ -252,7 +310,8 @@ export const ServicesPage: React.FC = () => {
   };
 
   const getServicePrice = (businessGroup: BusinessGroupPricing, serviceId: string): number => {
-    return businessGroup.servicePrices[serviceId] || 0;
+    const pricing = businessGroup.servicePrices[serviceId];
+    return pricing ? (pricing.commercialPrice + pricing.residentialPrice) / 2 : 0; // Average for display
   };
 
   const updateServicePrice = (serviceId: string, price: number) => {
