@@ -455,7 +455,7 @@ export const ServicesPage: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => handleToggleServiceStatus(service.id)}
-                  className={\`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
                     service.isActive 
                       ? 'bg-red-100 text-red-700 hover:bg-red-200' 
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
