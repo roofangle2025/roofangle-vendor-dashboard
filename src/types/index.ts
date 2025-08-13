@@ -116,16 +116,30 @@ export interface Service {
   id: string;
   name: string;
   description: string;
-  basePrice: number;
   isActive: boolean;
   createdAt: Date;
   modifiedAt: Date;
 }
 
-export interface ServicePrice {
+export interface BusinessGroupPricing {
   id: string;
-  serviceId: string;
-  clientName: string;
+  businessGroupId: string;
+  businessGroupName: string;
+  esxPrice: number;
+  wallReportPrice: number;
+  dadReportPrice: number;
+  rushOrderPrice: number;
+  pdfPrice: number;
+  isActive: boolean;
+  createdAt: Date;
+  modifiedAt: Date;
+}
+
+export interface CustomerSpecificPricing {
+  id: string;
+  businessGroupId: string;
+  customerName: string;
+  serviceType: 'ESX Report' | 'Wall Report' | 'DAD Report' | 'Rush Order' | 'PDF';
   price: number;
   isActive: boolean;
   createdAt: Date;
