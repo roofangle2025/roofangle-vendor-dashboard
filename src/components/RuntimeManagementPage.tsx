@@ -12,99 +12,10 @@ interface FilterState {
 }
 
 // Mock runtime configuration data
-const mockRuntimeConfigs: RuntimeConfig[] = [
-  {
-    id: '1',
-    key: 'STRIPE_SECRET_KEY',
-    value: 'sk_test_your_stripe_secret_key_here',
-    description: 'Stripe secret key for payment processing',
-    category: 'integrations',
-    type: 'string',
-    isRequired: true,
-    lastModified: new Date('2025-01-15T10:30:00'),
-    modifiedBy: 'Yashwnath K'
-  },
-  {
-    id: '2',
-    key: 'MAX_FILE_UPLOAD_SIZE',
-    value: '10',
-    description: 'Maximum file upload size in MB',
-    category: 'system',
-    type: 'number',
-    isRequired: true,
-    lastModified: new Date('2025-01-14T15:20:00'),
-    modifiedBy: 'John Doe'
-  },
-  {
-    id: '3',
-    key: 'ENABLE_RUSH_ORDERS',
-    value: 'true',
-    description: 'Enable rush order functionality',
-    category: 'features',
-    type: 'boolean',
-    isRequired: false,
-    lastModified: new Date('2025-01-13T09:15:00'),
-    modifiedBy: 'Jane Smith'
-  },
-  {
-    id: '4',
-    key: 'COMPANY_NAME',
-    value: 'RoofAngle LLC',
-    description: 'Company name displayed in the header',
-    category: 'ui',
-    type: 'string',
-    isRequired: true,
-    lastModified: new Date('2025-01-12T14:45:00'),
-    modifiedBy: 'Mike Johnson'
-  },
-  {
-    id: '5',
-    key: 'DEFAULT_BUSINESS_GROUP',
-    value: 'Ridgetop',
-    description: 'Default business group for new orders',
-    category: 'business',
-    type: 'string',
-    isRequired: false,
-    lastModified: new Date('2025-01-11T11:30:00'),
-    modifiedBy: 'Sarah Wilson'
-  },
-  {
-    id: '6',
-    key: 'EMAIL_NOTIFICATIONS',
-    value: '{"enabled": true, "smtp_host": "smtp.gmail.com", "smtp_port": 587}',
-    description: 'Email notification configuration',
-    category: 'integrations',
-    type: 'json',
-    isRequired: false,
-    lastModified: new Date('2025-01-10T16:20:00'),
-    modifiedBy: 'David Brown'
-  },
-  {
-    id: '7',
-    key: 'AUTO_ASSIGN_ORDERS',
-    value: 'false',
-    description: 'Automatically assign new orders to available team members',
-    category: 'features',
-    type: 'boolean',
-    isRequired: false,
-    lastModified: new Date('2025-01-09T13:10:00'),
-    modifiedBy: 'Yashwnath K'
-  },
-  {
-    id: '8',
-    key: 'SESSION_TIMEOUT',
-    value: '3600',
-    description: 'User session timeout in seconds',
-    category: 'system',
-    type: 'number',
-    isRequired: true,
-    lastModified: new Date('2025-01-08T10:00:00'),
-    modifiedBy: 'John Doe'
-  }
-];
+const mockRuntimeConfigs: RuntimeConfig[] = [];
 
 export const RuntimeManagementPage: React.FC = () => {
-  const [configs, setConfigs] = useState<RuntimeConfig[]>(mockRuntimeConfigs);
+  const [configs, setConfigs] = useState<RuntimeConfig[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
