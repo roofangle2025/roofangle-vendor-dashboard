@@ -439,15 +439,29 @@ export const ServicesPage: React.FC = () => {
                       }`}>
                         {service.isActive ? 'Active' : 'Inactive'}
                       </span>
-                      <span className="text-sm font-medium text-gray-600">
-                        Base: {formatCurrency(service.basePrice)}
+                      <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                        {formatDeliveryTime(service.deliveryTimeHours)}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <p className="text-sm text-gray-600 mb-4">{service.description}</p>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                
+                {/* Pricing Display */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                    <div className="font-medium text-blue-800">Commercial</div>
+                    <div className="text-sm font-bold text-blue-900">{formatCurrency(service.commercialPrice)}</div>
+                  </div>
+                  <div className="bg-green-50 p-2 rounded border border-green-200">
+                    <div className="font-medium text-green-800">Residential</div>
+                    <div className="text-sm font-bold text-green-900">{formatCurrency(service.residentialPrice)}</div>
+                  </div>
+                </div>
+              </div>
               
               <div className="flex flex-wrap gap-2">
                 <button 
@@ -646,9 +660,9 @@ export const ServicesPage: React.FC = () => {
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button
                   onClick={handleAddService}
-                  disabled={!newService.name.trim() || !newService.description.trim() || newService.commercialPrice <= 0 || newService.residentialPrice <= 0}
+                  disabled={!newService.name.trim() || !newService.description.trim()}
                   className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
-                    newService.name.trim() && newService.description.trim() && newService.commercialPrice > 0 && newService.residentialPrice > 0
+                    newService.name.trim() && newService.description.trim()
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
                   }`}
