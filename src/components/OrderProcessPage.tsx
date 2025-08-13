@@ -492,12 +492,17 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                     return (
                       <tr key={order.id} className={`hover:bg-gray-50 transition-colors duration-200 ${
                         countdown?.isOverdue ? 'bg-red-50' : ''
-                      }`}>
+                      } cursor-pointer`}
+                      onClick={() => onSelectOrder(order.id)}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <input
                             type="checkbox"
                             checked={selectedOrders.includes(order.id)}
-                            onChange={() => handleOrderSelect(order.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleOrderSelect(order.id);
+                            }}
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />
                         </td>
@@ -554,7 +559,10 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <button
-                            onClick={() => onSelectOrder(order.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectOrder(order.id);
+                            }}
                             className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200 text-xs font-medium"
                           >
                             <Eye className="w-3 h-3 mr-1" />
