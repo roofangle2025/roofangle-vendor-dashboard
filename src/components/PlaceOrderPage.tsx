@@ -115,7 +115,23 @@ export const PlaceOrderPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const orderNumber = `ORD-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`;
+    // Generate order number based on business group
+    const year = new Date().getFullYear();
+    const timestamp = Date.now();
+    const orderSequence = String(timestamp).slice(-3).padStart(3, '0');
+    
+    let orderNumber: string;
+    switch (orderData.businessGroup) {
+      case 'Ridgetop':
+        orderNumber = `RT-${year}-${orderSequence}`;
+        break;
+      case 'Skyline':
+        orderNumber = `SL-${year}-${orderSequence}`;
+        break;
+      default:
+        orderNumber = `ORD-${year}-${orderSequence}`;
+    }
+    
     const newOrder = {
       ...orderData,
       orderNumber,
