@@ -125,9 +125,7 @@ export interface BusinessGroupPricing {
   id: string;
   businessGroupId: string;
   businessGroupName: string;
-  esxPrice: number;
-  wallReportPrice: number;
-  dadReportPrice: number;
+  servicePrices: { [serviceId: string]: number }; // Dynamic pricing for each service
   rushOrderPrice: number;
   pdfPrice: number;
   isActive: boolean;

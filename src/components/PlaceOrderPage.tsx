@@ -1,11 +1,49 @@
 import React, { useState, useRef } from 'react';
 import { Save, Upload, Download, X } from 'lucide-react';
+import { Service } from '../types';
+
+// Get services from a centralized location (in a real app, this would come from a service/API)
+const getAvailableServices = (): Service[] => {
+  // This would typically come from a context or API call
+  // For now, we'll use the default services
+  return [
+    {
+      id: '1',
+      name: 'ESX Report',
+      description: 'Comprehensive property inspection and reporting service',
+      basePrice: 1200.00,
+      isActive: true,
+      createdAt: new Date('2024-12-01'),
+      modifiedAt: new Date('2024-12-01')
+    },
+    {
+      id: '2',
+      name: 'Wall Report',
+      description: 'Detailed wall inspection and structural analysis',
+      basePrice: 900.00,
+      isActive: true,
+      createdAt: new Date('2024-12-01'),
+      modifiedAt: new Date('2024-12-01')
+    },
+    {
+      id: '3',
+      name: 'DAD Report',
+      description: 'Damage assessment documentation and analysis',
+      basePrice: 1050.00,
+      isActive: true,
+      createdAt: new Date('2024-12-01'),
+      modifiedAt: new Date('2024-12-01')
+    }
+  ];
+};
 
 export const PlaceOrderPage: React.FC = () => {
+  const availableServices = getAvailableServices().filter(service => service.isActive);
+  
   const [orderData, setOrderData] = useState({
     propertyType: 'Residential',
     address: '',
-    service: 'ESX Report',
+    service: availableServices.length > 0 ? availableServices[0].name : '',
     rushOrder: 'No',
     pdfRequired: 'Yes',
     additionalInstructions: '',
@@ -177,10 +215,17 @@ export const PlaceOrderPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 required
               >
-                <option value="ESX Report">ESX Report</option>
-                <option value="DAD Report">DAD Report</option>
-                <option value="Wall Report">Wall Report</option>
+                {availableServices.map(service => (
+                  <option key={service.id} value={service.name}>
+                    {service.name}
+                  </option>
+                ))}
               </select>
+              {availableServices.length === 0 && (
+                <p className="text-xs text-red-600 mt-1">
+                  No active services available. Please add services in Runtime Management → Services Management.
+                </p>
+              )}
             </div>
 
             {/* Rush Order */}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Wrench, Edit, Trash2, DollarSign, Search, Filter, ChevronDown, X, Save, Building2 } from 'lucide-react';
+import { Plus, Wrench, Edit, Trash2, DollarSign, Search, Filter, ChevronDown, X, Save, Building2, AlertCircle } from 'lucide-react';
 import { Service, BusinessGroupPricing } from '../types';
 import { mockBusinessGroups } from '../data/mockData';
 
@@ -16,6 +16,7 @@ export const ServicesPage: React.FC = () => {
       id: '1',
       name: 'ESX Report',
       description: 'Comprehensive property inspection and reporting service',
+      basePrice: 1200.00,
       isActive: true,
       createdAt: new Date('2024-12-01'),
       modifiedAt: new Date('2024-12-01')
@@ -24,6 +25,7 @@ export const ServicesPage: React.FC = () => {
       id: '2',
       name: 'Wall Report',
       description: 'Detailed wall inspection and structural analysis',
+      basePrice: 900.00,
       isActive: true,
       createdAt: new Date('2024-12-01'),
       modifiedAt: new Date('2024-12-01')
@@ -32,6 +34,7 @@ export const ServicesPage: React.FC = () => {
       id: '3',
       name: 'DAD Report',
       description: 'Damage assessment documentation and analysis',
+      basePrice: 1050.00,
       isActive: true,
       createdAt: new Date('2024-12-01'),
       modifiedAt: new Date('2024-12-01')
@@ -43,9 +46,11 @@ export const ServicesPage: React.FC = () => {
       id: '1',
       businessGroupId: 'ridgetop',
       businessGroupName: 'Ridgetop',
-      esxPrice: 1250.00,
-      wallReportPrice: 950.00,
-      dadReportPrice: 1100.00,
+      servicePrices: {
+        '1': 1250.00, // ESX Report
+        '2': 950.00,  // Wall Report
+        '3': 1100.00  // DAD Report
+      },
       rushOrderPrice: 500.00,
       pdfPrice: 150.00,
       isActive: true,
@@ -56,9 +61,11 @@ export const ServicesPage: React.FC = () => {
       id: '2',
       businessGroupId: 'skyline',
       businessGroupName: 'Skyline',
-      esxPrice: 1400.00,
-      wallReportPrice: 1100.00,
-      dadReportPrice: 1300.00,
+      servicePrices: {
+        '1': 1400.00, // ESX Report
+        '2': 1100.00, // Wall Report
+        '3': 1300.00  // DAD Report
+      },
       rushOrderPrice: 600.00,
       pdfPrice: 200.00,
       isActive: true,
@@ -81,6 +88,7 @@ export const ServicesPage: React.FC = () => {
   const [newService, setNewService] = useState({
     name: '',
     description: '',
+    basePrice: 0,
     isActive: true
   });
 
@@ -169,26 +177,50 @@ export const ServicesPage: React.FC = () => {
         id: Date.now().toString(),
         name: newService.name.trim(),
         description: newService.description.trim(),
+        basePrice: newService.basePrice,
         isActive: newService.isActive,
         createdAt: new Date(),
         modifiedAt: new Date()
       };
       
       setServices(prev => [...prev, service]);
+      
+      // Add the new service to all business group pricing with base price
+      setBusinessGroupPricing(prev => prev.map(bg => ({
+        ...bg,
+        servicePrices: {
+          ...bg.servicePrices,
+          [service.id]: service.basePrice
+        },
+        modifiedAt: new Date()
+      })));
+      
       setNewService({
         name: '',
         description: '',
+        basePrice: 0,
         isActive: true
       });
       setShowAddServiceModal(false);
-      alert(`Service "${service.name}" added successfully!`);
+      alert(`Service "${service.name}" added successfully and is now available for all business groups!`);
     }
   };
 
   const handleDeleteService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    if (service && confirm(`Are you sure you want to delete "${service.name}"?`)) {
+    if (service && confirm(`Are you sure you want to delete "${service.name}"? This will remove it from all business group pricing.`)) {
       setServices(prev => prev.filter(s => s.id !== serviceId));
+      
+      // Remove the service from all business group pricing
+      setBusinessGroupPricing(prev => prev.map(bg => {
+        const { [serviceId]: removed, ...remainingPrices } = bg.servicePrices;
+        return {
+          ...bg,
+          servicePrices: remainingPrices,
+          modifiedAt: new Date()
+        };
+      }));
+      
       alert(`Service "${service.name}" deleted successfully!`);
     }
   };
@@ -219,30 +251,30 @@ export const ServicesPage: React.FC = () => {
     }
   };
 
-  const getServicePrice = (businessGroup: BusinessGroupPricing, serviceName: string): number => {
-    switch (serviceName) {
-      case 'ESX Report': return businessGroup.esxPrice;
-      case 'Wall Report': return businessGroup.wallReportPrice;
-      case 'DAD Report': return businessGroup.dadReportPrice;
-      case 'Rush Order': return businessGroup.rushOrderPrice;
-      case 'PDF': return businessGroup.pdfPrice;
-      default: return 0;
-    }
+  const getServicePrice = (businessGroup: BusinessGroupPricing, serviceId: string): number => {
+    return businessGroup.servicePrices[serviceId] || 0;
   };
 
-  const updateServicePrice = (serviceName: string, price: number) => {
+  const updateServicePrice = (serviceId: string, price: number) => {
     if (!editingPricing) return;
     
     setEditingPricing(prev => {
       if (!prev) return null;
-      switch (serviceName) {
-        case 'ESX Report': return { ...prev, esxPrice: price };
-        case 'Wall Report': return { ...prev, wallReportPrice: price };
-        case 'DAD Report': return { ...prev, dadReportPrice: price };
-        case 'Rush Order': return { ...prev, rushOrderPrice: price };
-        case 'PDF': return { ...prev, pdfPrice: price };
-        default: return prev;
-      }
+      return {
+        ...prev,
+        servicePrices: {
+          ...prev.servicePrices,
+          [serviceId]: price
+        }
+      };
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
@@ -340,13 +372,18 @@ export const ServicesPage: React.FC = () => {
                   <Wrench className="w-5 h-5 text-blue-600" />
                   <div>
                     <h3 className="font-medium text-gray-900">{service.name}</h3>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
-                      service.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {service.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        service.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {service.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className="text-sm font-medium text-gray-600">
+                        Base: {formatCurrency(service.basePrice)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -373,6 +410,19 @@ export const ServicesPage: React.FC = () => {
               </div>
             </div>
           ))}
+          
+          {filteredAndSortedServices.length === 0 && (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              <Wrench className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-lg font-medium">No services found</p>
+              <p className="text-sm">
+                {hasActiveFilters() 
+                  ? 'Try adjusting your search or filters'
+                  : 'Add your first service to get started'
+                }
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -405,34 +455,43 @@ export const ServicesPage: React.FC = () => {
                 </button>
               </div>
 
-              {/* Pricing Grid - Show all active services */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {filteredAndSortedServices.filter(service => service.isActive).map((service, index) => {
-                  const colors = [
-                    'bg-blue-50 border-blue-200 text-blue-800',
-                    'bg-green-50 border-green-200 text-green-800', 
-                    'bg-purple-50 border-purple-200 text-purple-800',
-                    'bg-red-50 border-red-200 text-red-800',
-                    'bg-yellow-50 border-yellow-200 text-yellow-800'
-                  ];
-                  const colorClass = colors[index % colors.length];
-                  
-                  return (
-                    <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
-                      <div className="text-sm font-medium mb-1">{service.name}</div>
-                      <div className="text-lg font-bold">{formatCurrency(getServicePrice(bgPricing, service.name))}</div>
-                    </div>
-                  );
-                })}
-                
-                {/* Show message if no active services */}
-                {filteredAndSortedServices.filter(service => service.isActive).length === 0 && (
-                  <div className="col-span-full text-center py-8 text-gray-500">
-                    <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm">No active services available</p>
-                    <p className="text-xs">Add services above to see pricing options</p>
+              {/* Services Pricing Grid */}
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Service Pricing</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {services.filter(service => service.isActive).map((service, index) => {
+                    const colors = [
+                      'bg-blue-50 border-blue-200 text-blue-800',
+                      'bg-green-50 border-green-200 text-green-800', 
+                      'bg-purple-50 border-purple-200 text-purple-800',
+                      'bg-orange-50 border-orange-200 text-orange-800',
+                      'bg-pink-50 border-pink-200 text-pink-800'
+                    ];
+                    const colorClass = colors[index % colors.length];
+                    
+                    return (
+                      <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
+                        <div className="text-sm font-medium mb-1">{service.name}</div>
+                        <div className="text-lg font-bold">{formatCurrency(getServicePrice(bgPricing, service.id))}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Default Pricing (Rush Order & PDF) */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Default Add-on Pricing</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-red-50 border-red-200 text-red-800 rounded-lg p-3 text-center border">
+                    <div className="text-sm font-medium mb-1">Rush Order</div>
+                    <div className="text-lg font-bold">{formatCurrency(bgPricing.rushOrderPrice)}</div>
                   </div>
-                )}
+                  <div className="bg-yellow-50 border-yellow-200 text-yellow-800 rounded-lg p-3 text-center border">
+                    <div className="text-sm font-medium mb-1">PDF Required</div>
+                    <div className="text-lg font-bold">{formatCurrency(bgPricing.pdfPrice)}</div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -487,6 +546,28 @@ export const ServicesPage: React.FC = () => {
                       rows={3}
                       required
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Base Price *
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <DollarSign className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={newService.basePrice}
+                        onChange={(e) => setNewService(prev => ({ ...prev, basePrice: parseFloat(e.target.value) || 0 }))}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">This will be the default price for all business groups</p>
                   </div>
                   
                   <div className="flex items-center">
@@ -551,19 +632,58 @@ export const ServicesPage: React.FC = () => {
                   </button>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
-                      Set pricing for all services for the <strong>{editingPricing.businessGroupName}</strong> business group.
-                    </p>
+                <div className="space-y-6">
+                  {/* Service Pricing Section */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      <Wrench className="w-4 h-4 text-blue-600 mr-2" />
+                      Service Pricing
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {services.filter(service => service.isActive).map((service) => (
+                        <div key={service.id}>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {service.name} Price *
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <DollarSign className="h-4 w-4 text-gray-400" />
+                            </div>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={getServicePrice(editingPricing, service.id)}
+                              onChange={(e) => updateServicePrice(service.id, parseFloat(e.target.value) || 0)}
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                              placeholder="0.00"
+                              required
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                        </div>
+                      ))}
+                      
+                      {services.filter(service => service.isActive).length === 0 && (
+                        <div className="col-span-full text-center py-6 text-gray-500">
+                          <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm">No active services available</p>
+                          <p className="text-xs">Add services above to configure pricing</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Dynamic pricing inputs for all active services */}
-                    {filteredAndSortedServices.filter(service => service.isActive).map((service) => (
-                      <div key={service.id}>
+                  {/* Default Add-on Pricing Section */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      <AlertCircle className="w-4 h-4 text-orange-600 mr-2" />
+                      Default Add-on Pricing
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {service.name} Price *
+                          Rush Order Price *
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -573,24 +693,38 @@ export const ServicesPage: React.FC = () => {
                             type="number"
                             step="0.01"
                             min="0"
-                            value={getServicePrice(editingPricing, service.name)}
-                            onChange={(e) => updateServicePrice(service.name, parseFloat(e.target.value) || 0)}
+                            value={editingPricing.rushOrderPrice}
+                            onChange={(e) => setEditingPricing(prev => prev ? { ...prev, rushOrderPrice: parseFloat(e.target.value) || 0 } : null)}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                             placeholder="0.00"
                             required
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">Additional charge for rush orders</p>
                       </div>
-                    ))}
-                    
-                    {filteredAndSortedServices.filter(service => service.isActive).length === 0 && (
-                      <div className="col-span-full text-center py-6 text-gray-500">
-                        <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm">No active services available</p>
-                        <p className="text-xs">Add services above to configure pricing</p>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          PDF Required Price *
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <DollarSign className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={editingPricing.pdfPrice}
+                            onChange={(e) => setEditingPricing(prev => prev ? { ...prev, pdfPrice: parseFloat(e.target.value) || 0 } : null)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Additional charge for PDF delivery</p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
