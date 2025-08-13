@@ -46,6 +46,7 @@ export interface NavigationState {
   showReportsSidebar: boolean;
   showFinancialSidebar: boolean;
   showRuntimeSidebar: boolean;
+  showRuntimeSidebar: boolean;
   showVendorPlatformSidebar: boolean;
 }
 

@@ -6,9 +6,10 @@ export const useNavigation = () => {
     currentPage: 'services',
     showAccessSidebar: false,
     showMenuSidebar: false,
-    showOrderSidebar: true,
+    showOrderSidebar: false,
     showReportsSidebar: false,
     showFinancialSidebar: false,
+    showRuntimeSidebar: true,
     showVendorPlatformSidebar: false
   });
 

@@ -95,6 +95,10 @@ function App() {
         return <ServicesPage />;
       case 'properties':
         return <PropertiesPage />;
+      case 'services':
+        return <ServicesPage />;
+      case 'properties':
+        return <PropertiesPage />;
       default:
         return <OrderDashboardPage onSelectOrder={(orderId) => navigateToPage('order-details', undefined, orderId)} />;
     }
