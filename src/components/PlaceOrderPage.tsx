@@ -57,6 +57,61 @@ export const PlaceOrderPage: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Get delivery time based on rush order, property type, and business group
+  const getDeliveryTime = () => {
+    const selectedService = availableServices.find(s => s.name === orderData.service);
+    if (!selectedService) return '48 hrs';
+    
+    // Mock business group pricing (in real app, this would come from context/API)
+    const businessGroupPricing = {
+      'Ridgetop': {
+        'ESX Report': { commercialDeliveryTimeHours: 48, residentialDeliveryTimeHours: 36 },
+        'Wall Report': { commercialDeliveryTimeHours: 72, residentialDeliveryTimeHours: 60 },
+        'DAD Report': { commercialDeliveryTimeHours: 60, residentialDeliveryTimeHours: 48 },
+        rushOrderDeliveryTimeHours: 24
+      },
+      'Skyline': {
+        'ESX Report': { commercialDeliveryTimeHours: 36, residentialDeliveryTimeHours: 24 },
+        'Wall Report': { commercialDeliveryTimeHours: 60, residentialDeliveryTimeHours: 48 },
+        'DAD Report': { commercialDeliveryTimeHours: 48, residentialDeliveryTimeHours: 36 },
+        rushOrderDeliveryTimeHours: 12
+      }
+    };
+    
+    const groupPricing = businessGroupPricing[orderData.businessGroup as keyof typeof businessGroupPricing];
+    if (!groupPricing) return '48 hrs';
+    
+    // If rush order, use rush delivery time
+    if (orderData.rushOrder === 'Yes') {
+      const rushHours = groupPricing.rushOrderDeliveryTimeHours;
+      return formatDeliveryTime(rushHours);
+    }
+    
+    // Otherwise, use service-specific delivery time based on property type
+    const servicePricing = groupPricing[orderData.service as keyof Omit<typeof groupPricing, 'rushOrderDeliveryTimeHours'>];
+    if (!servicePricing) return '48 hrs';
+    
+    const deliveryHours = orderData.propertyType === 'Commercial' 
+      ? servicePricing.commercialDeliveryTimeHours 
+      : servicePricing.residentialDeliveryTimeHours;
+    
+    return formatDeliveryTime(deliveryHours);
+  };
+  
+  const formatDeliveryTime = (hours: number): string => {
+    if (hours < 24) {
+      return `${hours} hrs`;
+    } else {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      if (remainingHours === 0) {
+        return `${days} ${days === 1 ? 'day' : 'days'}`;
+      } else {
+        return `${days}d ${remainingHours}h`;
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
