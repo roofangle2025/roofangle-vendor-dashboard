@@ -1,9 +1,9 @@
 import React from 'react';
-import { Shield, ShoppingCart, X, FileText, DollarSign, Settings } from 'lucide-react';
+import { Shield, ShoppingCart, X, FileText, DollarSign, Settings, Building } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
-  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management' | 'payments' | 'runtime-management') => void;
+  onNavigate: (page: 'business-groups' | 'order-dashboard' | 'reports-management' | 'payments' | 'runtime-management' | 'vendor-platform') => void;
   onClose?: () => void;
 }
 
@@ -62,6 +62,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onNavigate, onClose })
             >
               <DollarSign className="w-5 h-5 flex-shrink-0" />
               <span className="truncate font-medium">Financial Management</span>
+            </button>
+          </li>
+          <li>
+            <button 
+              onClick={() => onNavigate('vendor-platform')}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
+            >
+              <Building className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate font-medium">Vendor Platform</span>
             </button>
           </li>
           <li>

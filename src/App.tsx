@@ -5,6 +5,7 @@ import { AccessSidebar } from './components/AccessSidebar';
 import { OrderSidebar } from './components/OrderSidebar';
 import { ReportsSidebar } from './components/ReportsSidebar';
 import { FinancialSidebar } from './components/FinancialSidebar';
+import { VendorPlatformSidebar } from './components/VendorPlatformSidebar';
 import { UsersPage } from './components/UsersPage';
 import { BusinessGroupsPage } from './components/BusinessGroupsPage';
 import { GroupDetailsPage } from './components/GroupDetailsPage';
@@ -22,6 +23,9 @@ import { VendorReportPage } from './components/VendorReportPage';
 import { PaymentsPage } from './components/PaymentsPage';
 import { VendorPaymentsPage } from './components/VendorPaymentsPage';
 import { RuntimeManagementPage } from './components/RuntimeManagementPage';
+import { VendorPlatformPage } from './components/VendorPlatformPage';
+import { ServicesPage } from './components/ServicesPage';
+import { PropertiesPage } from './components/PropertiesPage';
 import { useNavigation } from './hooks/useNavigation';
 
 function App() {
@@ -89,6 +93,12 @@ function App() {
         return <VendorPaymentsPage />;
       case 'runtime-management':
         return <RuntimeManagementPage />;
+      case 'vendor-platform':
+        return <VendorPlatformPage onNavigate={navigateToPage} />;
+      case 'services':
+        return <ServicesPage />;
+      case 'properties':
+        return <PropertiesPage />;
       default:
         return <OrderDashboardPage onSelectOrder={(orderId) => navigateToPage('order-details', undefined, orderId)} />;
     }
@@ -140,10 +150,17 @@ function App() {
           sidebarOffset={getSidebarOffset()}
         />
         
+        <VendorPlatformSidebar 
+          isVisible={navigationState.showVendorPlatformSidebar}
+          currentPage={navigationState.currentPage}
+          onNavigate={navigateToPage}
+          sidebarOffset={getSidebarOffset()}
+        />
+        
         <main 
           className={`flex-1 p-3 sm:p-4 lg:p-6 transition-all duration-300 ease-in-out ${
             navigationState.showMenuSidebar ? 'lg:ml-64' : ''
-          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar || navigationState.showFinancialSidebar) ? 'lg:ml-64' : ''}`}
+          } ${(navigationState.showAccessSidebar || navigationState.showOrderSidebar || navigationState.showReportsSidebar || navigationState.showFinancialSidebar || navigationState.showVendorPlatformSidebar) ? 'lg:ml-64' : ''}`}
         >
           {renderCurrentPage()}
         </main>

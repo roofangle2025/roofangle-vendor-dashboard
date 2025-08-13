@@ -8,8 +8,9 @@ export const useNavigation = () => {
     showMenuSidebar: false,
     showOrderSidebar: true,
     showReportsSidebar: false,
-    showTransactionSidebar: false,
-    showRuntimeSidebar: false
+    showFinancialSidebar: false,
+    showRuntimeSidebar: false,
+    showVendorPlatformSidebar: false
   });
 
   const navigateToPage = (page: NavigationState['currentPage'], groupId?: string, orderId?: string) => {
@@ -18,6 +19,7 @@ export const useNavigation = () => {
     const isReportsPage = ['reports-management', 'quality-analytics', 'vendor-report'].includes(page);
     const isFinancialPage = ['payments', 'vendor-payments'].includes(page);
     const isRuntimePage = ['runtime-management'].includes(page);
+    const isVendorPlatformPage = ['vendor-platform', 'services', 'properties'].includes(page);
     
     setNavigationState(prev => ({
       ...prev,
@@ -29,7 +31,8 @@ export const useNavigation = () => {
       showMenuSidebar: false,
       showReportsSidebar: isReportsPage,
       showFinancialSidebar: isFinancialPage,
-      showRuntimeSidebar: isRuntimePage
+      showRuntimeSidebar: isRuntimePage,
+      showVendorPlatformSidebar: isVendorPlatformPage
     }));
   };
 

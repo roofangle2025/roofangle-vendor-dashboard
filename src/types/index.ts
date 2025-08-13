@@ -37,7 +37,7 @@ export interface ActivityLog {
 }
 
 export interface NavigationState {
-  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management' | 'quality-analytics' | 'vendor-report' | 'payments' | 'vendor-payments' | 'runtime-management';
+  currentPage: 'users' | 'business-groups' | 'group-details' | 'ra-role' | 'ra-audit-logs' | 'order-dashboard' | 'place-order' | 'order-process' | 'orders-delivery' | 'order-details' | 'reports-management' | 'quality-analytics' | 'vendor-report' | 'payments' | 'vendor-payments' | 'runtime-management' | 'vendor-platform' | 'services' | 'properties';
   selectedGroupId?: string;
   selectedOrderId?: string;
   showAccessSidebar: boolean;
@@ -46,6 +46,7 @@ export interface NavigationState {
   showReportsSidebar: boolean;
   showFinancialSidebar: boolean;
   showRuntimeSidebar: boolean;
+  showVendorPlatformSidebar: boolean;
 }
 
 export interface Order {
@@ -109,6 +110,38 @@ export interface UserRole {
   canViewOrders: boolean;
   canAssignOrders: boolean;
   canProcessOrders: boolean;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  isActive: boolean;
+  createdAt: Date;
+  modifiedAt: Date;
+}
+
+export interface ServicePrice {
+  id: string;
+  serviceId: string;
+  clientName: string;
+  price: number;
+  isActive: boolean;
+  createdAt: Date;
+  modifiedAt: Date;
+}
+
+export interface Property {
+  id: string;
+  key: string;
+  value: string;
+  description: string;
+  category: 'stripe' | 'payment' | 'api' | 'system' | 'other';
+  isSecure: boolean;
+  isRequired: boolean;
+  lastModified: Date;
+  modifiedBy: string;
 }
 
 export interface ReportData {
