@@ -849,6 +849,7 @@ export const ServicesPage: React.FC = () => {
                             Faster delivery time for rush orders - Current: {formatDeliveryTime(editingPricing.rushOrderDeliveryTimeHours)}
                           </p>
                         </div>
+                      </div>
                       
                       <div className="mt-4">
                         <div>
