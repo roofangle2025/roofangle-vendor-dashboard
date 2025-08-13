@@ -452,24 +452,6 @@ export const ServicesPage: React.FC = () => {
                 </div>
               </div>
               
-              <p className="text-sm text-gray-600 mb-3">{service.description}</p>
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Commercial:</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(service.commercialPrice)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Residential:</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(service.residentialPrice)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Delivery Time:</span>
-                  <span className="font-medium text-gray-900">{formatDeliveryTime(service.deliveryTimeHours)}</span>
-                  </span>
-                </div>
-              </div>
-              
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => handleToggleServiceStatus(service.id)}
@@ -506,8 +488,6 @@ export const ServicesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Business Group Pricing Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
       {/* Business Group Pricing Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex items-center justify-between mb-6">
@@ -553,7 +533,7 @@ export const ServicesPage: React.FC = () => {
                     const pricing = getServicePricing(bgPricing, service.id);
                     
                     return (
-                      <div key={service.id} className={\`rounded-lg p-3 text-center border ${colorClass}`}>
+                      <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
                         <div className="text-sm font-medium mb-1">{service.name}</div>
                         <div className="text-xs space-y-1">
                           <div>C: {formatCurrency(pricing.commercialPrice)} | {formatDeliveryTime(pricing.commercialDeliveryTimeHours)}</div>
@@ -715,7 +695,7 @@ export const ServicesPage: React.FC = () => {
                 <button
                   onClick={handleAddService}
                   disabled={!newService.name.trim() || !newService.description.trim() || newService.commercialPrice <= 0 || newService.residentialPrice <= 0}
-                  className={\`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
+                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
                     newService.name.trim() && newService.description.trim() && newService.commercialPrice > 0 && newService.residentialPrice > 0
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
