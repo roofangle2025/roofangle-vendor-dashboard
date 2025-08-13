@@ -771,7 +771,7 @@ export const ServicesPage: React.FC = () => {
                                   step="0.01"
                                   min="0"
                                   value={getServicePricing(editingPricing, service.id).commercialPrice}
-                                  onChange={(e) => updateServicePricing(service.id, 'commercial', parseFloat(e.target.value) || 0)}
+                                 onChange={(e) => updateServicePricing(service.id, 'commercialPrice', parseFloat(e.target.value) || 0)}
                                   className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                                   placeholder="0.00"
                                   required
@@ -792,13 +792,55 @@ export const ServicesPage: React.FC = () => {
                                   step="0.01"
                                   min="0"
                                   value={getServicePricing(editingPricing, service.id).residentialPrice}
-                                  onChange={(e) => updateServicePricing(service.id, 'residential', parseFloat(e.target.value) || 0)}
+                                 onChange={(e) => updateServicePricing(service.id, 'residentialPrice', parseFloat(e.target.value) || 0)}
                                   className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                                   placeholder="0.00"
                                   required
                                 />
                               </div>
                             </div>
+                           
+                           <div>
+                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                               Commercial Delivery Time *
+                             </label>
+                             <select
+                               value={getServicePricing(editingPricing, service.id).commercialDeliveryTimeHours}
+                               onChange={(e) => updateServicePricing(service.id, 'commercialDeliveryTimeHours', parseInt(e.target.value))}
+                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                               required
+                             >
+                               <option value={24}>24 hrs (1 day)</option>
+                               <option value={36}>36 hrs (1.5 days)</option>
+                               <option value={48}>48 hrs (2 days)</option>
+                               <option value={60}>60 hrs (2.5 days)</option>
+                               <option value={72}>72 hrs (3 days)</option>
+                               <option value={96}>96 hrs (4 days)</option>
+                               <option value={120}>120 hrs (5 days)</option>
+                               <option value={168}>168 hrs (1 week)</option>
+                             </select>
+                           </div>
+                           
+                           <div>
+                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                               Residential Delivery Time *
+                             </label>
+                             <select
+                               value={getServicePricing(editingPricing, service.id).residentialDeliveryTimeHours}
+                               onChange={(e) => updateServicePricing(service.id, 'residentialDeliveryTimeHours', parseInt(e.target.value))}
+                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                               required
+                             >
+                               <option value={24}>24 hrs (1 day)</option>
+                               <option value={36}>36 hrs (1.5 days)</option>
+                               <option value={48}>48 hrs (2 days)</option>
+                               <option value={60}>60 hrs (2.5 days)</option>
+                               <option value={72}>72 hrs (3 days)</option>
+                               <option value={96}>96 hrs (4 days)</option>
+                               <option value={120}>120 hrs (5 days)</option>
+                               <option value={168}>168 hrs (1 week)</option>
+                             </select>
+                           </div>
                           </div>
                         </div>
                       ))}
