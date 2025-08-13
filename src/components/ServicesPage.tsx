@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Wrench, Edit, Trash2, DollarSign, Users, Search, Filter, ChevronDown, X, Save, Building2, Star } from 'lucide-react';
-import { Service, BusinessGroupPricing, CustomerSpecificPricing } from '../types';
+import { Plus, Wrench, Edit, Trash2, DollarSign, Search, Filter, ChevronDown, X, Save, Building2 } from 'lucide-react';
+import { Service, BusinessGroupPricing } from '../types';
 import { mockBusinessGroups } from '../data/mockData';
 
 type SortField = 'name' | 'isActive' | 'createdAt';
@@ -67,13 +67,11 @@ export const ServicesPage: React.FC = () => {
     }
   ]);
   
-  const [customerPricing, setCustomerPricing] = useState<CustomerSpecificPricing[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
-  const [showCustomerPricingModal, setShowCustomerPricingModal] = useState(false);
-  const [selectedBusinessGroup, setSelectedBusinessGroup] = useState<BusinessGroupPricing | null>(null);
+  const [editingPricing, setEditingPricing] = useState<BusinessGroupPricing | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filters, setFilters] = useState<FilterState>({
@@ -84,14 +82,6 @@ export const ServicesPage: React.FC = () => {
     name: '',
     description: '',
     isActive: true
-  });
-
-  const [editingPricing, setEditingPricing] = useState<BusinessGroupPricing | null>(null);
-  
-  const [newCustomerPricing, setNewCustomerPricing] = useState({
-    customerName: '',
-    serviceType: services.length > 0 ? services[0].name as CustomerSpecificPricing['serviceType'] : 'ESX Report' as CustomerSpecificPricing['serviceType'],
-    price: ''
   });
 
   const formatCurrency = (amount: number) => {
@@ -212,7 +202,6 @@ export const ServicesPage: React.FC = () => {
   };
 
   const handleManagePricing = (businessGroup: BusinessGroupPricing) => {
-    setSelectedBusinessGroup(businessGroup);
     setEditingPricing({ ...businessGroup });
     setShowPricingModal(true);
   };
@@ -230,47 +219,31 @@ export const ServicesPage: React.FC = () => {
     }
   };
 
-  const handleManageCustomerPricing = (businessGroup: BusinessGroupPricing) => {
-    setSelectedBusinessGroup(businessGroup);
-    setNewCustomerPricing({
-      customerName: '',
-      serviceType: filteredAndSortedServices.length > 0 ? filteredAndSortedServices[0].name as CustomerSpecificPricing['serviceType'] : 'ESX Report',
-      price: ''
+  const getServicePrice = (businessGroup: BusinessGroupPricing, serviceName: string): number => {
+    switch (serviceName) {
+      case 'ESX Report': return businessGroup.esxPrice;
+      case 'Wall Report': return businessGroup.wallReportPrice;
+      case 'DAD Report': return businessGroup.dadReportPrice;
+      case 'Rush Order': return businessGroup.rushOrderPrice;
+      case 'PDF': return businessGroup.pdfPrice;
+      default: return 0;
+    }
+  };
+
+  const updateServicePrice = (serviceName: string, price: number) => {
+    if (!editingPricing) return;
+    
+    setEditingPricing(prev => {
+      if (!prev) return null;
+      switch (serviceName) {
+        case 'ESX Report': return { ...prev, esxPrice: price };
+        case 'Wall Report': return { ...prev, wallReportPrice: price };
+        case 'DAD Report': return { ...prev, dadReportPrice: price };
+        case 'Rush Order': return { ...prev, rushOrderPrice: price };
+        case 'PDF': return { ...prev, pdfPrice: price };
+        default: return prev;
+      }
     });
-    setShowCustomerPricingModal(true);
-  };
-
-  const handleAddCustomerPricing = () => {
-    if (selectedBusinessGroup && newCustomerPricing.customerName.trim() && newCustomerPricing.price) {
-      const customerPrice: CustomerSpecificPricing = {
-        id: Date.now().toString(),
-        businessGroupId: selectedBusinessGroup.businessGroupId,
-        customerName: newCustomerPricing.customerName.trim(),
-        serviceType: newCustomerPricing.serviceType,
-        price: parseFloat(newCustomerPricing.price),
-        isActive: true,
-        createdAt: new Date(),
-        modifiedAt: new Date()
-      };
-      
-      setCustomerPricing(prev => [...prev, customerPrice]);
-      setNewCustomerPricing({
-        customerName: '',
-        serviceType: 'ESX Report',
-        price: ''
-      });
-      alert(`Custom pricing for "${customerPrice.customerName}" added successfully!`);
-    }
-  };
-
-  const getCustomerPricingForGroup = (businessGroupId: string) => {
-    return customerPricing.filter(cp => cp.businessGroupId === businessGroupId);
-  };
-
-  const handleDeleteCustomerPricing = (customerPricingId: string) => {
-    if (confirm('Are you sure you want to delete this custom pricing?')) {
-      setCustomerPricing(prev => prev.filter(cp => cp.id !== customerPricingId));
-    }
   };
 
   return (
@@ -423,55 +396,31 @@ export const ServicesPage: React.FC = () => {
                     <p className="text-sm text-gray-500">Business Group Pricing Configuration</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleManageCustomerPricing(bgPricing)}
-                    className="inline-flex items-center px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors duration-200 text-sm font-medium"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Customer Pricing
-                  </button>
-                  <button
-                    onClick={() => handleManagePricing(bgPricing)}
-                    className="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200 text-sm font-medium"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Pricing
-                  </button>
-                </div>
+                <button
+                  onClick={() => handleManagePricing(bgPricing)}
+                  className="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200 text-sm font-medium"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Pricing
+                </button>
               </div>
 
-              {/* Pricing Grid */}
+              {/* Pricing Grid - Show all active services */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Display all active services */}
                 {filteredAndSortedServices.filter(service => service.isActive).map((service, index) => {
                   const colors = [
                     'bg-blue-50 border-blue-200 text-blue-800',
                     'bg-green-50 border-green-200 text-green-800', 
                     'bg-purple-50 border-purple-200 text-purple-800',
                     'bg-red-50 border-red-200 text-red-800',
-                    'bg-yellow-50 border-yellow-200 text-yellow-800',
-                    'bg-indigo-50 border-indigo-200 text-indigo-800',
-                    'bg-pink-50 border-pink-200 text-pink-800'
+                    'bg-yellow-50 border-yellow-200 text-yellow-800'
                   ];
                   const colorClass = colors[index % colors.length];
-                  
-                  // Get price for this service from business group pricing
-                  const getServicePrice = (serviceName: string) => {
-                    switch (serviceName) {
-                      case 'ESX Report': return bgPricing.esxPrice;
-                      case 'Wall Report': return bgPricing.wallReportPrice;
-                      case 'DAD Report': return bgPricing.dadReportPrice;
-                      case 'Rush Order': return bgPricing.rushOrderPrice;
-                      case 'PDF': return bgPricing.pdfPrice;
-                      default: return 0; // For newly added services, default to 0
-                    }
-                  };
                   
                   return (
                     <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
                       <div className="text-sm font-medium mb-1">{service.name}</div>
-                      <div className="text-lg font-bold">{formatCurrency(getServicePrice(service.name))}</div>
+                      <div className="text-lg font-bold">{formatCurrency(getServicePrice(bgPricing, service.name))}</div>
                     </div>
                   );
                 })}
@@ -484,29 +433,6 @@ export const ServicesPage: React.FC = () => {
                     <p className="text-xs">Add services above to see pricing options</p>
                   </div>
                 )}
-              </div>
-
-              {/* Customer-Specific Pricing Summary */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Custom customer pricing: {getCustomerPricingForGroup(bgPricing.businessGroupId).length} customers
-                  </div>
-                  {getCustomerPricingForGroup(bgPricing.businessGroupId).length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {getCustomerPricingForGroup(bgPricing.businessGroupId).slice(0, 3).map(cp => (
-                        <span key={cp.id} className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                          {cp.customerName}
-                        </span>
-                      ))}
-                      {getCustomerPricingForGroup(bgPricing.businessGroupId).length > 3 && (
-                        <span className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                          +{getCustomerPricingForGroup(bgPricing.businessGroupId).length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           ))}
@@ -544,7 +470,7 @@ export const ServicesPage: React.FC = () => {
                       value={newService.name}
                       onChange={(e) => setNewService(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      placeholder="e.g., ESX Report, DAD Report, Wall Report"
+                      placeholder="e.g., Roof Inspection, Foundation Report"
                       required
                     />
                   </div>
@@ -625,67 +551,46 @@ export const ServicesPage: React.FC = () => {
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {editingPricing.businessGroupName} - Service Pricing *
-                    </label>
-                    <div className="space-y-4">
-                      {/* Dynamic pricing inputs for all active services */}
-                      {filteredAndSortedServices.filter(service => service.isActive).map((service) => (
-                        <div key={service.id}>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {service.name} Price *
-                          </label>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <DollarSign className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={(() => {
-                                // Get the current price for this service
-                                switch (service.name) {
-                                  case 'ESX Report': return editingPricing?.esxPrice || 0;
-                                  case 'Wall Report': return editingPricing?.wallReportPrice || 0;
-                                  case 'DAD Report': return editingPricing?.dadReportPrice || 0;
-                                  case 'Rush Order': return editingPricing?.rushOrderPrice || 0;
-                                  case 'PDF': return editingPricing?.pdfPrice || 0;
-                                  default: return 0;
-                                }
-                              })()}
-                              onChange={(e) => {
-                                const value = parseFloat(e.target.value) || 0;
-                                setEditingPricing(prev => {
-                                  if (!prev) return null;
-                                  switch (service.name) {
-                                    case 'ESX Report': return { ...prev, esxPrice: value };
-                                    case 'Wall Report': return { ...prev, wallReportPrice: value };
-                                    case 'DAD Report': return { ...prev, dadReportPrice: value };
-                                    case 'Rush Order': return { ...prev, rushOrderPrice: value };
-                                    case 'PDF': return { ...prev, pdfPrice: value };
-                                    default: return prev;
-                                  }
-                                });
-                              }}
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                              required
-                            />
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-800">
+                      Set pricing for all services for the <strong>{editingPricing.businessGroupName}</strong> business group.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Dynamic pricing inputs for all active services */}
+                    {filteredAndSortedServices.filter(service => service.isActive).map((service) => (
+                      <div key={service.id}>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {service.name} Price *
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <DollarSign className="h-4 w-4 text-gray-400" />
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={getServicePrice(editingPricing, service.name)}
+                            onChange={(e) => updateServicePrice(service.name, parseFloat(e.target.value) || 0)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                            placeholder="0.00"
+                            required
+                          />
                         </div>
-                      ))}
-                      
-                      {filteredAndSortedServices.filter(service => service.isActive).length === 0 && (
-                        <div className="text-center py-6 text-gray-500">
-                          <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                          <p className="text-sm">No active services available</p>
-                          <p className="text-xs">Add services above to configure pricing</p>
-                        </div>
-                      )}
-                    </div>
+                        <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                      </div>
+                    ))}
+                    
+                    {filteredAndSortedServices.filter(service => service.isActive).length === 0 && (
+                      <div className="col-span-full text-center py-6 text-gray-500">
+                        <Wrench className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm">No active services available</p>
+                        <p className="text-xs">Add services above to configure pricing</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -703,136 +608,6 @@ export const ServicesPage: React.FC = () => {
                   className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors duration-200"
                 >
                   Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Customer-Specific Pricing Modal */}
-      {showCustomerPricingModal && selectedBusinessGroup && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowCustomerPricingModal(false)} />
-            
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full mx-4">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 mr-2" />
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Customer Pricing for {selectedBusinessGroup.businessGroupName}
-                    </h3>
-                  </div>
-                  <button 
-                    onClick={() => setShowCustomerPricingModal(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
-                  >
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                </div>
-                
-                {/* Add New Customer Pricing */}
-                <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Add Customer-Specific Pricing</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <input
-                        type="text"
-                        value={newCustomerPricing.customerName}
-                        onChange={(e) => setNewCustomerPricing(prev => ({ ...prev, customerName: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                        placeholder="Customer name"
-                      />
-                    </div>
-                    <div>
-                      <select
-                        value={newCustomerPricing.serviceType}
-                        onChange={(e) => setNewCustomerPricing(prev => ({ ...prev, serviceType: e.target.value as CustomerSpecificPricing['serviceType'] }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                      >
-                        {filteredAndSortedServices.filter(service => service.isActive).map(service => (
-                          <option key={service.id} value={service.name}>{service.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex space-x-2">
-                      <div className="relative flex-1">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <DollarSign className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={newCustomerPricing.price}
-                          onChange={(e) => setNewCustomerPricing(prev => ({ ...prev, price: e.target.value }))}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <button
-                        onClick={handleAddCustomerPricing}
-                        disabled={!newCustomerPricing.customerName.trim() || !newCustomerPricing.price}
-                        className={`px-3 py-2 rounded-lg font-medium transition-colors duration-200 text-sm ${
-                          newCustomerPricing.customerName.trim() && newCustomerPricing.price
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
-                      >
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Existing Customer Pricing List */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Existing Customer Pricing</h4>
-                  {getCustomerPricingForGroup(selectedBusinessGroup.businessGroupId).length === 0 ? (
-                    <div className="text-center py-6 text-gray-500">
-                      <Building2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm">No custom pricing set</p>
-                      <p className="text-xs">All customers use standard business group pricing</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {getCustomerPricingForGroup(selectedBusinessGroup.businessGroupId).map((customerPrice) => (
-                        <div key={customerPrice.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <Building2 className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{customerPrice.customerName}</div>
-                              <div className="text-xs text-gray-500">
-                                {customerPrice.serviceType} • Added {customerPrice.createdAt.toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-bold text-green-600">
-                              {formatCurrency(customerPrice.price)}
-                            </span>
-                            <button
-                              onClick={() => handleDeleteCustomerPricing(customerPrice.id)}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  onClick={() => setShowCustomerPricingModal(false)}
-                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm transition-colors duration-200"
-                >
-                  Close
                 </button>
               </div>
             </div>

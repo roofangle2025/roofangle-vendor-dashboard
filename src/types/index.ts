@@ -135,17 +135,6 @@ export interface BusinessGroupPricing {
   modifiedAt: Date;
 }
 
-export interface CustomerSpecificPricing {
-  id: string;
-  businessGroupId: string;
-  customerName: string;
-  serviceType: 'ESX Report' | 'Wall Report' | 'DAD Report' | 'Rush Order' | 'PDF';
-  price: number;
-  isActive: boolean;
-  createdAt: Date;
-  modifiedAt: Date;
-}
-
 export interface Property {
   id: string;
   key: string;
