@@ -451,9 +451,6 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                     Item Number
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Address
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Rush
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -473,7 +470,7 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAndSortedOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center">
+                    <td colSpan={9} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <Package className="w-12 h-12 text-gray-300 mb-4" />
                         <p className="text-gray-500 text-lg font-medium">
@@ -518,9 +515,6 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Due: {formatDate(order.deliveryDate!)}
-                                </div>
                               </>
                             ) : (
                               <span className="text-sm text-gray-500">No due date</span>
@@ -533,11 +527,6 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">#1</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 max-w-xs truncate">
-                            {order.address || 'Address not specified'}
-                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
