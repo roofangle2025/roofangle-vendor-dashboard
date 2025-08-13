@@ -454,7 +454,7 @@ export const ServicesPage: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => handleToggleServiceStatus(service.id)}
-                  className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  className={\`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
                     service.isActive 
                       ? 'bg-red-100 text-red-700 hover:bg-red-200' 
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
@@ -532,7 +532,7 @@ export const ServicesPage: React.FC = () => {
                     const pricing = getServicePricing(bgPricing, service.id);
                     
                     return (
-                      <div key={service.id} className={`rounded-lg p-3 text-center border ${colorClass}`}>
+                      <div key={service.id} className={\`rounded-lg p-3 text-center border ${colorClass}`}>
                         <div className="text-sm font-medium mb-1">{service.name}</div>
                         <div className="text-xs space-y-1">
                           <div>C: {formatCurrency(pricing.commercialPrice)} | {formatDeliveryTime(pricing.commercialDeliveryTimeHours)}</div>
@@ -694,7 +694,7 @@ export const ServicesPage: React.FC = () => {
                 <button
                   onClick={handleAddService}
                   disabled={!newService.name.trim() || !newService.description.trim() || newService.commercialPrice <= 0 || newService.residentialPrice <= 0}
-                  className={`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
+                  className={\`w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:w-auto sm:text-sm transition-colors duration-200 ${
                     newService.name.trim() && newService.description.trim() && newService.commercialPrice > 0 && newService.residentialPrice > 0
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
