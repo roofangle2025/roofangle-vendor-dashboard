@@ -503,6 +503,7 @@ export const OrderProcessPage: React.FC<OrderProcessPageProps> = ({ onSelectOrde
                               e.stopPropagation();
                               handleOrderSelect(order.id);
                             }}
+                           onClick={(e) => e.stopPropagation()}
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />
                         </td>
