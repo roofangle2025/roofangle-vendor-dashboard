@@ -452,6 +452,24 @@ export const ServicesPage: React.FC = () => {
                 </div>
               </div>
               
+              <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Commercial:</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(service.commercialPrice)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Residential:</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(service.residentialPrice)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Delivery Time:</span>
+                  <span className="font-medium text-gray-900">{formatDeliveryTime(service.deliveryTimeHours)}</span>
+                  </span>
+                </div>
+              </div>
+              
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => handleToggleServiceStatus(service.id)}
@@ -486,7 +504,10 @@ export const ServicesPage: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
 
+      {/* Business Group Pricing Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
       {/* Business Group Pricing Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex items-center justify-between mb-6">
