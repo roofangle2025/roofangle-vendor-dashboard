@@ -859,6 +859,27 @@ export const ServicesPage: React.FC = () => {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Rush Order Delivery Time *
+                        </label>
+                        <select
+                          value={editingPricing.rushOrderDeliveryTimeHours}
+                          onChange={(e) => setEditingPricing(prev => prev ? { ...prev, rushOrderDeliveryTimeHours: parseInt(e.target.value) } : null)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                          required
+                        >
+                          <option value={6}>6 hrs</option>
+                          <option value={12}>12 hrs</option>
+                          <option value={24}>24 hrs (1 day)</option>
+                          <option value={36}>36 hrs (1.5 days)</option>
+                          <option value={48}>48 hrs (2 days)</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">Faster delivery time for rush orders</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           PDF Required Price *
                         </label>
                         <div className="relative">
@@ -878,7 +899,6 @@ export const ServicesPage: React.FC = () => {
                         </div>
                         <p className="text-xs text-gray-500 mt-1">Additional charge for PDF delivery</p>
                       </div>
-                    </div>
                   </div>
                 </div>
               </div>

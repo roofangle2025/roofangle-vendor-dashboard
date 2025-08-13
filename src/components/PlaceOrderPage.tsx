@@ -172,6 +172,24 @@ export const PlaceOrderPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Order Information</h2>
           
+          {/* Delivery Time Display */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-blue-800">Estimated Delivery Time</h3>
+                <p className="text-xs text-blue-600 mt-1">
+                  Based on {orderData.rushOrder === 'Yes' ? 'rush order' : 'standard service'} delivery time
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-900">{getDeliveryTime()}</div>
+                <div className="text-xs text-blue-700">
+                  {orderData.rushOrder === 'Yes' ? '🚀 Rush Delivery' : '📦 Standard Delivery'}
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Property Type */}
             <div>
